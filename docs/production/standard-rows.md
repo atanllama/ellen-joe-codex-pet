@@ -1,6 +1,7 @@
 # Ellen Joe Pixel standard-row production record
 
-**Status:** Accepted rows 0–8
+**Status:** Blocked after post-authorization review; eight rows accepted,
+`jumping` pending
 
 **Run directory:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`
 
@@ -16,7 +17,9 @@ Retry counts below mean additional complete-row generation attempts after the
 first attempt. A row was accepted only after the selected source was copied to
 its decoded path, the decoded copy matched the selected source by SHA-256,
 deterministic inspection completed, and the normal-size strip plus GIF were
-reviewed. No look-cardinal or look-direction row was generated in this stage.
+reviewed. Independent re-review invalidated the current jumping selection for a
+forbidden prop, so Task 7 must not consume the intermediate atlas. No
+look-cardinal or look-direction row was generated in this stage.
 
 ## Acceptance summary
 
@@ -26,7 +29,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 initial + 5 repair rounds | stable-slots + authorized deterministic registration | Crouched anticipation, lift, airborne peak, descent, and upright settle with preserved vertical travel. |
+| `jumping` | 5 | 2 initial + 5 repair rounds + 1 rejected complete-row edit | pending | Candidate-2 frames 0–3 contain forbidden shears; the one allowed removal edit changed scale materially and was rejected. |
 | `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
@@ -93,16 +96,24 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
   repairs failed independent normal-size review for major scale or head/torso
   registration popping. The final image-generation round still had a `51 px`
   head-top swing and missed the requested intermediate shoe-bottom anchors.
-- Repair history (GREEN): the user explicitly authorized one narrow exception
+- Repair history (invalidated): the user explicitly authorized one narrow exception
   using the complete candidate-2 imagegen row and its stable-slots frames. A
   reviewable deterministic script applied the same nominal `0.90`
   nearest-neighbor sprite-content scale to every frame, centered each result,
   and set exclusive alpha-bbox bottoms to `203, 193, 183, 193, 203`. It did not
   redraw, tile, mirror, rotate, warp, or vary scale by frame. Integer
   quantization produced realized width/height scale `0.8985–0.9028`; alpha-area
-  ratios are `0.8077–0.8167`. All five frames have zero edge pixels. Normal-size
-  review confirms readable anticipation/lift/peak/descent/settle motion without
-  a feature-scale pop, clipping, shadow, dust, or landing mark.
+  ratios are `0.8077–0.8167`, and all five frames have zero edge pixels.
+  Independent re-review then found shears in frames 0–3, which violates the
+  unarmed jumping contract and invalidates this otherwise deterministic result.
+- Post-review fix 1 used the one permitted complete-row image edit. It removed
+  every shears pair and left both hands empty with no new prop or effect, but
+  stable-slots geometry shrank `17.4–24.9%` in width and `11.7–15.1%` in height
+  relative to candidate 2. Per the review instruction, that is a material
+  geometry change. The edit was rejected and was not copied to the selected,
+  decoded, canonical-frame, atlas, contact-sheet, or preview paths.
+- Rejected edit evidence:
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix1.json`.
 
 ### `failed`
 
@@ -160,15 +171,21 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ## Aggregate standard-row gate
 
-- `qa/review.json` reports `ok: true`, no errors, and two reviewed playback
-  warnings for the deliberate `jumping` and `failed` stable-slots corrections.
+- **Overall gate: failed.** `qa/review.json` still reports deterministic
+  structure `ok: true`, but that report cannot waive the visual-semantic shears
+  failure in `jumping`.
 - All 57 used frames are `192 x 208`, non-empty, clear of cell edges, and
-  extracted with the run's chroma key and threshold.
+  extracted with the run's chroma key and threshold, but the five active
+  jumping frames are not packaging eligible.
 - `final/spritesheet.webp` is the deterministic `1536 x 1872` rows 0–8
-  intermediate only; it is not a packaged v2 pet.
-- `qa/contact-sheet.png` and all nine files under `qa/previews/` were reviewed
-  at normal pet size. Identity, palette, headpiece, face, tail attachment,
-  shoes, prop rules, direction semantics, and forbidden-effect rules passed.
-- The manifest marks exactly `base` plus these nine standard rows complete.
-  `look-cardinals`, `look-row-9`, and `look-row-10` remain pending, and no
-  decoded look asset exists.
+  diagnostic only; it is invalid for Task 7 because it contains the rejected
+  jumping row.
+- `qa/contact-sheet.png` and `qa/previews/jumping.gif` remain diagnostic
+  evidence of the forbidden shears rather than accepted QA outputs.
+- The manifest marks `base` plus eight standard rows complete and `jumping`
+  pending with the current blocker. `look-cardinals`, `look-row-9`, and
+  `look-row-10` remain pending, and no decoded look asset exists.
+- Current base and all row selected-source manifest paths point under the F-drive
+  run. Hash-verified C-drive temporary originals were removed only after their
+  byte-identical F-drive copies existed; cleanup evidence is
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\selected-source-cleanup.json`.
