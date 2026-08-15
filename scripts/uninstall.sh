@@ -1,6 +1,15 @@
 #!/bin/sh
 set -u
 fail() { code=$1; shift; printf '%s\n' "$*" >&2; exit "$code"; }
+is_filesystem_root() {
+    case "$1" in /|//|//* ) return 0 ;; esac
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*)
+            case "$1" in /[A-Za-z]|/[A-Za-z]/|[A-Za-z]:|[A-Za-z]:/) return 0 ;; esac
+            ;;
+    esac
+    return 1
+}
 is_link_or_reparse() {
     [ -L "$1" ] && return 0
     if command -v cmd.exe >/dev/null 2>&1 && command -v cygpath >/dev/null 2>&1; then
@@ -14,7 +23,7 @@ canonical_existing_home() {
     [ -e "$1" ] || fail 2 'Pet is not installed.'
     [ -d "$1" ] || fail 3 'Refusing a non-directory Codex home.'
     result=$(CDPATH= cd -P "$1" && pwd -P) || fail 3 'Cannot resolve Codex home.'
-    [ "$result" != / ] || fail 3 'Codex home cannot be a filesystem root.'
+    is_filesystem_root "$result" && fail 3 'Codex home cannot be a filesystem root.'
     printf '%s\n' "$result"
 }
 
@@ -30,6 +39,7 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --codex-home)
             [ "$#" -ge 2 ] && [ "$home_specified" -eq 0 ] && [ -n "$2" ] || fail 3 'Invalid --codex-home value.'
+            case "$2" in -*) fail 3 'Invalid --codex-home value.' ;; esac
             codex_home=$2
             home_specified=1
             shift 2

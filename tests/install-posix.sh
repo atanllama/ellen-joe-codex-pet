@@ -9,8 +9,9 @@ mkdir -p "$fixture/scripts" "$fixture/pet/ellen-joe-pixel"
 cp "$test_dir/../scripts/install.sh" "$test_dir/../scripts/uninstall.sh" "$fixture/scripts/"
 manifest="$fixture/pet/ellen-joe-pixel/pet.json"
 sheet="$fixture/pet/ellen-joe-pixel/spritesheet.webp"
-valid_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
-printf '%s\n' "$valid_manifest" > "$manifest"
+canonical_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
+valid_manifest='{ "extra": true, "spritesheetPath" : "spritesheet.webp", "description" : "A different non-empty fixture description", "spriteVersionNumber" : 2, "id" : "ellen-joe-pixel" }'
+printf '%s\r\n' "$valid_manifest" > "$manifest"
 printf '\001\002\003' > "$sheet"
 
 fail_test() { printf '%s\n' "$*" >&2; exit 1; }
@@ -50,36 +51,80 @@ single_backup() {
 new_test_home "$home"
 printf '%s\n' '{"id":"ellen-joe-pixel","spriteVersionNumber":20,"spritesheetPath":"spritesheet.webp"}' > "$manifest"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
 printf '%s\n' '{"id":"ellen-joe-pixel",' > "$manifest"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
+printf '%s\n' '[]' > "$manifest"
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
 printf '%s\n' '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spriteVersionNumber":20,"spritesheetPath":"spritesheet.webp"}' > "$manifest"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
-printf '%s\n' "$valid_manifest" > "$manifest"
+assert_sentinel "$home"
+printf '%s\n' "$canonical_manifest" > "$manifest"
+cd "$fixture"
 
 assert_code 3 sh "$fixture/scripts/install.sh" --unknown
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home ''
+assert_sentinel "$home"
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home --force
+test ! -e "$fixture/--force"
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --unknown
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home ''
+assert_sentinel "$home"
+assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home --force
+test ! -e "$fixture/--force"
+assert_sentinel "$home"
 assert_code 3 env -u HOME -u CODEX_HOME sh "$fixture/scripts/install.sh"
+assert_sentinel "$home"
 assert_code 3 env -u HOME -u CODEX_HOME sh "$fixture/scripts/uninstall.sh"
+assert_sentinel "$home"
+
+sed -e 's/command -v python3/command -v python3-not-installed/g' -e 's/command -v python/command -v python-not-installed/g' "$fixture/scripts/install.sh" > "$fixture/scripts/install-no-python.sh"
+assert_code 3 sh "$fixture/scripts/install-no-python.sh" --codex-home "$home"
+assert_sentinel "$home"
+printf '%s\r\n' "$valid_manifest" > "$manifest"
 
 root_alias=/tmp/..
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$root_alias"
+assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$root_alias"
+assert_sentinel "$home"
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home //
+assert_sentinel "$home"
+assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home //
+assert_sentinel "$home"
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+        assert_code 3 sh "$fixture/scripts/install.sh" --codex-home /c
+        assert_sentinel "$home"
+        assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home /c
+        assert_sentinel "$home"
+        ;;
+esac
 
 linked_home="$temp_root/linked home"
 outside="$temp_root/outside"
 new_test_home "$outside"
 mkdir -p "$linked_home"
-if command -v pwsh >/dev/null 2>&1; then
-    LINKED_PETS="$linked_home/pets" OUTSIDE_PETS="$outside/pets" pwsh -NoProfile -Command 'New-Item -ItemType Junction -Path $env:LINKED_PETS -Target $env:OUTSIDE_PETS | Out-Null'
-else
-    ln -s "$outside/pets" "$linked_home/pets"
-fi
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+        command -v pwsh >/dev/null 2>&1 || fail_test 'pwsh is required to create the Windows Junction fixture'
+        LINKED_PETS="$linked_home/pets" OUTSIDE_PETS="$outside/pets" pwsh -NoProfile -Command 'New-Item -ItemType Junction -Path $env:LINKED_PETS -Target $env:OUTSIDE_PETS | Out-Null'
+        ;;
+    *) ln -s "$outside/pets" "$linked_home/pets" ;;
+esac
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$linked_home"
+assert_sentinel "$outside"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$linked_home"
+assert_sentinel "$outside"
 [ ! -e "$outside/pets/ellen-joe-pixel" ] || fail_test 'linked pets parent escaped Codex home'
 assert_sentinel "$outside"
 
@@ -87,6 +132,7 @@ file_home="$temp_root/file target home"
 new_test_home "$file_home"
 printf '%s\n' 'not a pet directory' > "$file_home/pets/ellen-joe-pixel"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$file_home" --force
+assert_sentinel "$file_home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$file_home"
 assert_sentinel "$file_home"
 

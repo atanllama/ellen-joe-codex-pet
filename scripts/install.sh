@@ -1,6 +1,15 @@
 #!/bin/sh
 set -u
 fail() { code=$1; shift; printf '%s\n' "$*" >&2; exit "$code"; }
+is_filesystem_root() {
+    case "$1" in /|//|//* ) return 0 ;; esac
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*)
+            case "$1" in /[A-Za-z]|/[A-Za-z]/|[A-Za-z]:|[A-Za-z]:/) return 0 ;; esac
+            ;;
+    esac
+    return 1
+}
 is_link_or_reparse() {
     [ -L "$1" ] && return 0
     if command -v cmd.exe >/dev/null 2>&1 && command -v cygpath >/dev/null 2>&1; then
@@ -25,7 +34,7 @@ canonical_home() {
             *) mkdir "$resolved_parent/$leaf" || fail 4 'Cannot create Codex home.'; result="$resolved_parent/$leaf" ;;
         esac
     fi
-    [ "$result" != / ] || fail 3 'Codex home cannot be a filesystem root.'
+    is_filesystem_root "$result" && fail 3 'Codex home cannot be a filesystem root.'
     printf '%s\n' "$result"
 }
 cleanup_stage() {
@@ -66,6 +75,7 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --codex-home)
             [ "$#" -ge 2 ] && [ "$home_specified" -eq 0 ] && [ -n "$2" ] || fail 3 'Invalid --codex-home value.'
+            case "$2" in -*) fail 3 'Invalid --codex-home value.' ;; esac
             codex_home=$2
             home_specified=1
             shift 2
@@ -80,11 +90,51 @@ script_dir=$(CDPATH= cd -P "$(dirname "$0")" && pwd) || fail 3 'Cannot resolve s
 repo_root=$(CDPATH= cd -P "$script_dir/.." && pwd) || fail 3 'Cannot resolve repository root.'
 source_dir="$repo_root/pet/ellen-joe-pixel"
 [ -f "$source_dir/pet.json" ] && [ -f "$source_dir/spritesheet.webp" ] || fail 3 'Invalid source: package files are missing.'
-# The shipped manifest is a controlled, canonical one-line JSON contract. This
-# exact comparison rejects malformed JSON, duplicate keys, and substring values.
-expected_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
-actual_manifest=$(cat "$source_dir/pet.json") || fail 3 'Invalid source: cannot read manifest.'
-[ "$actual_manifest" = "$expected_manifest" ] || fail 3 'Invalid source: manifest contract mismatch.'
+# Python 3 is a declared runtime dependency for this Python package. Prefer the
+# usual python3 command and accept python only when it identifies as Python 3.
+# If neither is available, validation fails explicitly rather than falling back
+# to a best-effort or substring-based parser.
+if command -v python3 >/dev/null 2>&1 && python3 -c 'import sys; raise SystemExit(sys.version_info[0] != 3)' >/dev/null 2>&1; then
+    python_cmd=python3
+elif command -v python >/dev/null 2>&1 && python -c 'import sys; raise SystemExit(sys.version_info[0] != 3)' >/dev/null 2>&1; then
+    python_cmd=python
+else
+    fail 3 'Invalid source: Python 3 is required to validate pet.json.'
+fi
+"$python_cmd" - "$source_dir/pet.json" <<'PY'
+import json
+import sys
+
+required = {"id", "spriteVersionNumber", "spritesheetPath"}
+
+
+def object_with_safe_required_keys(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in required and key in value:
+            raise ValueError(f"duplicate required key: {key}")
+        value[key] = item
+    return value
+
+
+try:
+    with open(sys.argv[1], "r", encoding="utf-8", newline=None) as handle:
+        manifest = json.load(handle, object_pairs_hook=object_with_safe_required_keys)
+    if type(manifest) is not dict:
+        raise ValueError("manifest must be an object")
+    if manifest.get("id") != "ellen-joe-pixel":
+        raise ValueError("invalid id")
+    if type(manifest.get("spriteVersionNumber")) is not int or manifest["spriteVersionNumber"] != 2:
+        raise ValueError("invalid sprite version")
+    if manifest.get("spritesheetPath") != "spritesheet.webp":
+        raise ValueError("invalid spritesheet path")
+    if not isinstance(manifest.get("description"), str) or not manifest["description"].strip():
+        raise ValueError("description must be non-empty")
+except (OSError, ValueError, json.JSONDecodeError, TypeError) as error:
+    print(f"Invalid source: manifest contract mismatch ({error}).", file=sys.stderr)
+    sys.exit(1)
+PY
+[ "$?" -eq 0 ] || fail 3 'Invalid source: manifest contract mismatch.'
 
 codex_home=$(canonical_home "$codex_home") || exit $?
 pets_candidate="$codex_home/pets"

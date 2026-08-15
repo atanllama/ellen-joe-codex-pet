@@ -17,8 +17,11 @@ try {
     [IO.File]::WriteAllBytes($sheetPath, [byte[]](1, 2, 3))
 
     function Invoke-Code([string]$Name, [string[]]$Arguments) {
-        & pwsh -NoProfile -File (Join-Path $fixture "scripts\$Name") @Arguments *> $null
-        return $LASTEXITCODE
+        Push-Location $fixture
+        try {
+            & pwsh -NoProfile -File (Join-Path $fixture "scripts\$Name") @Arguments *> $null
+            return $LASTEXITCODE
+        } finally { Pop-Location }
     }
     function Assert-Code([int]$Expected, [string]$Name, [string[]]$Arguments) {
         $actual = Invoke-Code $Name $Arguments
@@ -35,21 +38,39 @@ try {
         if (@(Get-ChildItem -LiteralPath (Join-Path $Path 'pets') -Force | Where-Object Name -Like '.ellen-joe-pixel.stage.*').Count -ne 0) { throw "staging directory leaked under $Path" }
     }
 
+    New-TestHome $codexHome
     # RED-before-GREEN regression: automatic parameter binding returned 1 here.
     Assert-Code 3 'install.ps1' @('-Unknown')
+    Assert-Sentinel $codexHome
     Assert-Code 3 'install.ps1' @('-CodexHome')
+    Assert-Sentinel $codexHome
     Assert-Code 3 'install.ps1' @('-CodexHome', '')
+    Assert-Sentinel $codexHome
+    Assert-Code 3 'install.ps1' @('-CodexHome', '-Force')
+    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'option was treated as a Codex home value' }
+    Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-Unknown')
+    Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome')
+    Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', '')
+    Assert-Sentinel $codexHome
+    Assert-Code 3 'uninstall.ps1' @('-CodexHome', '-Force')
+    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'uninstaller option was treated as a Codex home value' }
+    Assert-Sentinel $codexHome
 
     $rootAlias = Join-Path ([IO.Path]::GetPathRoot($tempRoot)) '.'
     Assert-Code 3 'install.ps1' @('-CodexHome', $rootAlias)
+    Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', $rootAlias)
+    Assert-Sentinel $codexHome
 
-    New-TestHome $codexHome
     '{"id":"ellen-joe-pixel","spriteVersionNumber":20,"spritesheetPath":"spritesheet.webp"}' | Set-Content -LiteralPath $manifestPath -Encoding UTF8
     Assert-Code 3 'install.ps1' @('-CodexHome', $codexHome)
+    Assert-Sentinel $codexHome
+    '{"id":' | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+    Assert-Code 3 'install.ps1' @('-CodexHome', $codexHome)
+    Assert-Sentinel $codexHome
     $validManifest | Set-Content -LiteralPath $manifestPath -Encoding UTF8
 
     $linkedHome = Join-Path $tempRoot 'linked home'
@@ -58,7 +79,9 @@ try {
     New-Item -ItemType Directory -Path $linkedHome | Out-Null
     New-Item -ItemType Junction -Path (Join-Path $linkedHome 'pets') -Target (Join-Path $outside 'pets') | Out-Null
     Assert-Code 3 'install.ps1' @('-CodexHome', $linkedHome)
+    Assert-Sentinel $outside
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', $linkedHome)
+    Assert-Sentinel $outside
     if (Test-Path -LiteralPath (Join-Path $outside 'pets\ellen-joe-pixel')) { throw 'linked parent escaped Codex home' }
     Assert-Sentinel $outside
 
@@ -66,6 +89,7 @@ try {
     New-TestHome $fileHome
     'not a pet directory' | Set-Content -LiteralPath (Join-Path $fileHome 'pets\ellen-joe-pixel')
     Assert-Code 3 'install.ps1' @('-CodexHome', $fileHome, '-Force')
+    Assert-Sentinel $fileHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', $fileHome)
     Assert-Sentinel $fileHome
 

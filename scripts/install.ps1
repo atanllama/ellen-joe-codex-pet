@@ -41,7 +41,7 @@ $force = $false
 for ($index = 0; $index -lt $Arguments.Count; $index++) {
     switch ($Arguments[$index]) {
         '-CodexHome' {
-            if ($homeSpecified -or $index + 1 -ge $Arguments.Count -or [string]::IsNullOrWhiteSpace($Arguments[$index + 1])) { Stop-With 3 'Invalid -CodexHome value.' }
+            if ($homeSpecified -or $index + 1 -ge $Arguments.Count -or [string]::IsNullOrWhiteSpace($Arguments[$index + 1]) -or $Arguments[$index + 1].StartsWith('-')) { Stop-With 3 'Invalid -CodexHome value.' }
             $homeInput = $Arguments[$index + 1]
             $homeSpecified = $true
             $index++
