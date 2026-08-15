@@ -1,0 +1,32 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python scripts/validate_pet.py pet/ellen-joe-pixel
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh -NoProfile -File tests/install-windows.ps1
+      - if: runner.os != 'Windows'
+        shell: sh
+        run: sh tests/install-posix.sh

@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python scripts/validate_pet.py pet/ellen-joe-pixel
+      - shell: sh
+        run: sh tests/install-posix.sh
+      - shell: bash
+        run: python scripts/build_release.py --repo-root . --version "$GITHUB_REF_NAME" --output-dir dist
+      - shell: bash
+        run: |
+          cp "docs/releases/$GITHUB_REF_NAME.md" dist/release-notes.md
+          printf '\n**Commit:** `%s`\n' "$(git rev-parse HEAD)" >> dist/release-notes.md
+      - shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          "dist/ellen-joe-pixel-$GITHUB_REF_NAME.zip"
+          "dist/ellen-joe-pixel-$GITHUB_REF_NAME.tar.gz"
+          dist/SHA256SUMS.txt
+          --verify-tag
+          --title "Ellen Joe Codex Pet $GITHUB_REF_NAME"
+          --notes-file dist/release-notes.md
