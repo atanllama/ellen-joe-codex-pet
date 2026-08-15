@@ -47,8 +47,8 @@ try {
     Assert-Code 3 'install.ps1' @('-CodexHome', '')
     Assert-Sentinel $codexHome
     Assert-Code 3 'install.ps1' @('-CodexHome', '-Force')
-    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'option was treated as a Codex home value' }
     Assert-Sentinel $codexHome
+    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'option was treated as a Codex home value' }
     Assert-Code 3 'uninstall.ps1' @('-Unknown')
     Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome')
@@ -56,8 +56,8 @@ try {
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', '')
     Assert-Sentinel $codexHome
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', '-Force')
-    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'uninstaller option was treated as a Codex home value' }
     Assert-Sentinel $codexHome
+    if (Test-Path -LiteralPath (Join-Path $fixture '-Force')) { throw 'uninstaller option was treated as a Codex home value' }
 
     $rootAlias = Join-Path ([IO.Path]::GetPathRoot($tempRoot)) '.'
     Assert-Code 3 'install.ps1' @('-CodexHome', $rootAlias)

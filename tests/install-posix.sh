@@ -74,8 +74,8 @@ assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home ''
 assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home --force
-test ! -e "$fixture/--force"
 assert_sentinel "$home"
+test ! -e "$fixture/--force"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --unknown
 assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home
@@ -83,8 +83,8 @@ assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home ''
 assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home --force
-test ! -e "$fixture/--force"
 assert_sentinel "$home"
+test ! -e "$fixture/--force"
 assert_code 3 env -u HOME -u CODEX_HOME sh "$fixture/scripts/install.sh"
 assert_sentinel "$home"
 assert_code 3 env -u HOME -u CODEX_HOME sh "$fixture/scripts/uninstall.sh"
@@ -113,13 +113,33 @@ case "$(uname -s)" in
         ;;
 esac
 
-{
-    printf '%s\n' '#!/bin/sh'
-    sed -n '/^is_filesystem_root()/,/^}/p' "$fixture/scripts/install.sh"
-    printf '%s\n' 'is_filesystem_root "//server/share/codex-home"'
-    printf '%s\n' 'exit $?'
-} > "$fixture/root-classifier.sh"
-assert_code 1 sh "$fixture/root-classifier.sh"
+write_root_classifier() {
+    source_script=$1
+    classifier_script=$2
+    {
+        printf '%s\n' '#!/bin/sh'
+        sed -n '/^is_filesystem_root()/,/^}/p' "$source_script"
+        printf '%s\n' 'if is_filesystem_root "$2"; then actual=root; else actual=nonroot; fi'
+        printf '%s\n' '[ "$actual" = "$1" ]'
+    } > "$classifier_script"
+}
+write_root_classifier "$fixture/scripts/install.sh" "$fixture/install-root-classifier.sh"
+write_root_classifier "$fixture/scripts/uninstall.sh" "$fixture/uninstall-root-classifier.sh"
+for classifier in "$fixture/install-root-classifier.sh" "$fixture/uninstall-root-classifier.sh"; do
+    assert_code 0 sh "$classifier" root /
+    assert_code 0 sh "$classifier" root //
+    assert_code 0 sh "$classifier" root //server/share
+    assert_code 0 sh "$classifier" root //server/share/
+    assert_code 0 sh "$classifier" nonroot //server/share/codex-home
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*)
+            assert_code 0 sh "$classifier" root /c
+            assert_code 0 sh "$classifier" root /c/
+            assert_code 0 sh "$classifier" root C:
+            assert_code 0 sh "$classifier" root C:/
+            ;;
+    esac
+done
 
 linked_home="$temp_root/linked home"
 outside="$temp_root/outside"

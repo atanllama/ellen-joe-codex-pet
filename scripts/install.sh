@@ -3,6 +3,21 @@ set -u
 fail() { code=$1; shift; printf '%s\n' "$*" >&2; exit "$code"; }
 is_filesystem_root() {
     case "$1" in /|// ) return 0 ;; esac
+    case "$1" in
+        //*)
+            unc_path=${1#//}
+            unc_path=${unc_path%/}
+            case "$unc_path" in
+                */*)
+                    unc_server=${unc_path%%/*}
+                    unc_share=${unc_path#*/}
+                    if [ -n "$unc_server" ] && [ -n "$unc_share" ] && [ "$unc_share" = "${unc_share#*/}" ]; then
+                        return 0
+                    fi
+                    ;;
+            esac
+            ;;
+    esac
     case "$(uname -s)" in
         MINGW*|MSYS*|CYGWIN*)
             case "$1" in /[A-Za-z]|/[A-Za-z]/|[A-Za-z]:|[A-Za-z]:/) return 0 ;; esac
