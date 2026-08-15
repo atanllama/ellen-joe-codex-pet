@@ -29,7 +29,7 @@ look-cardinal or look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 initial + 5 repair rounds + 2 rejected complete-row edits | pending | Candidate-2 frames 0–3 contain forbidden shears; both prop-free edits changed scale materially and were rejected. |
+| `jumping` | 5 | 2 initial + 5 repair rounds + 3 rejected complete-row edits | pending | Candidate-2 frames 0–3 contain forbidden shears; all three prop-free edits changed scale materially and were rejected. |
 | `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
@@ -121,6 +121,17 @@ look-cardinal or look-direction row was generated in this stage.
   `0.90` transform would preserve that scale deficit, so the row was rejected
   without promotion. Evidence:
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix2.json`.
+- Post-review fix 3 changed strategy after the repeated shrink root. A
+  deterministic, non-packaging `960 x 208` target-layout guide was assembled
+  from the already authorized final-cell frames without scaling or
+  repositioning. One complete-row image edit used it as geometry authority and
+  remained empty-handed with zero edge pixels, but the extracted figures were
+  `24.2–32.2%` narrower, `10.7–14.6%` shorter, and `23.3–31.3%` smaller by the
+  recorded face-width proxy. The generated row and local guide were both
+  rejected for packaging. Evidence:
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix3.json`;
+  guide provenance:
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\rows\jumping\target-layout-reference.json`.
 
 ### `failed`
 
@@ -199,3 +210,5 @@ look-cardinal or look-direction row was generated in this stage.
 - The round-2 generated original was likewise hash-matched to its retained F-drive
   evidence before exact deletion; see
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\fix2-selected-source-cleanup.json`.
+- The same exact-file cleanup rule was applied to round 3; see
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\fix3-selected-source-cleanup.json`.
