@@ -26,8 +26,8 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 | stable-slots | Crouched anticipation, lift, airborne peak, descent, and upright settle with preserved vertical travel. |
-| `failed` | 8 | 3 | components | Compact shears lower while shoulders collapse, eyes close, and tail droops. |
+| `jumping` | 5 | 2 initial + 5 repair rounds | stable-slots + authorized deterministic registration | Crouched anticipation, lift, airborne peak, descent, and upright settle with preserved vertical travel. |
+| `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
 | `review` | 6 | 1 | components | Existing blade inspection with head tilt, narrowed eyes, nod, and no new prop. |
@@ -36,7 +36,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `idle`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a00667-2b32-76e2-a108-67a08657c378\exec-8f02a311-63ef-4c57-a124-4f1d6fd09f77.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\idle.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\idle.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\idle.png`
 - Decoded SHA-256: `590090360DF33BEDAB48EB1A98A34FC184E2BBDE9EE6F5BACE93855718674A3A`
@@ -47,7 +47,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `running-right`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a00667-4ead-7c60-8c76-ac6293862865\exec-5ac40af7-cd94-4967-8521-c7a5cb651dbc.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\running-right.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\running-right.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\running-right.png`
 - Decoded SHA-256: `7C323C85D9E7BE67EE9002BA46F8D33B6D00DDA6B40FA2EF3320B528CAC77D81`
@@ -59,7 +59,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `running-left`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a0066b-f9a2-7b12-8241-caef79e8b493\exec-28cd7374-113d-4964-8b44-959c403d5c5e.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\running-left.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\running-left.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\running-left.png`
 - Decoded SHA-256: `623313CED12AFCE48CFB2D1F5A0CA99322EA29E7A959C26D41A32024B2B30467`
@@ -71,7 +71,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `waving`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a0066a-6d1c-7011-bba7-7fab44d24429\exec-fe68b425-0908-4af8-b470-d4ffffa988ec.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\waving.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\waving.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\waving.png`
 - Decoded SHA-256: `2767D82998108038E0B059AC49A3C5F7CEAF334C4AADB39FD27A48351D69E0AF`
@@ -82,24 +82,31 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `jumping`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a0066c-d26c-7543-b84a-4f5d95f855d8\exec-f8797d88-d665-47fa-bdc6-df162e2dc658.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\jumping.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\jumping.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\jumping.png`
-- Decoded SHA-256: `075CD71E2BB3C6434650984DFE221E5560224F6A485D4081C0F3285C280F1359`
+- Decoded SHA-256: `774D9C925B88EA477B4E1FD89C1E1F3AD329291434C7E439D52E6374417F330E`
 - Deterministic report: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\rows\jumping\review.json`
+- Authorized transform provenance: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-authorized-transform.json`
 - GIF: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\previews\jumping.gif`
-- Repair history: the first source had correct five-beat poses, but
-  component-by-component fitting erased the vertical arc; stable-slots
-  preserved it only with excessive in-cell shrink. Retry 1 constrained the
-  arc and restored near-canonical height but made the body poses effectively
-  static. Retry 2 restored a clear crouch, lift, peak, descent, and settle.
-  The accepted stable-slots report retains its expected playback-review
-  warning; normal-size review confirmed the vertical arc, complete silhouettes,
-  stable source scale, and no clipping, shadow, dust, or landing mark.
+- Repair history (RED): the originally accepted source and all five bounded SDD
+  repairs failed independent normal-size review for major scale or head/torso
+  registration popping. The final image-generation round still had a `51 px`
+  head-top swing and missed the requested intermediate shoe-bottom anchors.
+- Repair history (GREEN): the user explicitly authorized one narrow exception
+  using the complete candidate-2 imagegen row and its stable-slots frames. A
+  reviewable deterministic script applied the same nominal `0.90`
+  nearest-neighbor sprite-content scale to every frame, centered each result,
+  and set exclusive alpha-bbox bottoms to `203, 193, 183, 193, 203`. It did not
+  redraw, tile, mirror, rotate, warp, or vary scale by frame. Integer
+  quantization produced realized width/height scale `0.8985–0.9028`; alpha-area
+  ratios are `0.8077–0.8167`. All five frames have zero edge pixels. Normal-size
+  review confirms readable anticipation/lift/peak/descent/settle motion without
+  a feature-scale pop, clipping, shadow, dust, or landing mark.
 
 ### `failed`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a0066e-702c-7bb3-ab1c-41fb43791e61\exec-ba5e0e7d-ba38-4b5f-b27f-14d971ac170b.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\failed.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\failed.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\failed.png`
 - Decoded SHA-256: `E246FD5BDDBE7DBF6CBBF3EA87CA2DCF5B195BF1FA1CD903C9A2683714B8E4FB`
@@ -110,10 +117,14 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
   slot fallback and a tiny eighth frame. Retry 2 restored eight groups but
   reintroduced the long blade. A strategy-change retry simplified the tool to
   closed handspan-sized two-loop shears and passed all gates.
+  Independent review then exposed component-fit growth during the slump; the
+  verified stable-slots frames were promoted byte-for-byte. Normal-size review
+  now shows a continuous collapse with stable feature scale and no playback
+  growth; all eight frames have zero edge pixels.
 
 ### `waiting`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a0066e-f591-78f1-85a1-77b7c9b393f4\exec-1a0add4a-5c86-4f89-9095-45b6bb350fa3.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\waiting.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\waiting.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\waiting.png`
 - Decoded SHA-256: `9B59EEEAF7EF8206DA64736E5F6C61D2A2C32EC6F4F91DD862A55C56FB98D701`
@@ -125,7 +136,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `running`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a00673-8d65-7e12-89ac-7d5d0d3dbdb3\exec-99dcf988-0078-410f-a168-f1a04f584e31.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\running.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\running.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\running.png`
 - Decoded SHA-256: `924329BC383C282893A15554A9D3D17BEE936C309BDCFC646EDE5DD79C8656B0`
@@ -137,7 +148,7 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ### `review`
 
-- Selected source: `C:\Users\MDPI\.codex\generated_images\01a00675-eba8-70c1-a99c-9f1acd8441d1\exec-bba60f0a-a233-4675-af88-152a53ac49d3.png`
+- Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\review.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\review.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\review.png`
 - Decoded SHA-256: `E6C2739ADAE623A4FADEC5ED30F9A111CDA833BECD7049E528E78816ED09E199`
@@ -149,8 +160,8 @@ reviewed. No look-cardinal or look-direction row was generated in this stage.
 
 ## Aggregate standard-row gate
 
-- `qa/review.json` reports `ok: true`, no errors, and one reviewed warning for
-  the deliberate `jumping` stable-slots correction.
+- `qa/review.json` reports `ok: true`, no errors, and two reviewed playback
+  warnings for the deliberate `jumping` and `failed` stable-slots corrections.
 - All 57 used frames are `192 x 208`, non-empty, clear of cell edges, and
   extracted with the run's chroma key and threshold.
 - `final/spritesheet.webp` is the deterministic `1536 x 1872` rows 0–8
