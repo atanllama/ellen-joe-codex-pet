@@ -1,7 +1,64 @@
 [CmdletBinding()]
-param([string]$CodexHome, [switch]$Force)
+param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
 $ErrorActionPreference = 'Stop'
 function Stop-With([int]$Code, [string]$Message) { [Console]::Error.WriteLine($Message); exit $Code }
+function Resolve-CodexHome([string]$InputHome, [bool]$Create) {
+    try { $lexicalHome = [IO.Path]::GetFullPath($InputHome) } catch { Stop-With 3 ("Invalid Codex home: " + $_.Exception.Message) }
+    if ($lexicalHome.TrimEnd('\') -eq [IO.Path]::GetPathRoot($lexicalHome).TrimEnd('\')) { Stop-With 3 'Codex home cannot be a filesystem root.' }
+    if (-not (Test-Path -LiteralPath $lexicalHome)) {
+        if (-not $Create) { Stop-With 2 'Pet is not installed.' }
+        try { New-Item -ItemType Directory -Path $lexicalHome | Out-Null } catch { Stop-With 4 ("Cannot create Codex home: " + $_.Exception.Message) }
+    }
+    $homeItem = Get-Item -LiteralPath $lexicalHome -Force
+    if (-not $homeItem.PSIsContainer -or ($homeItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point Codex home.' }
+    $resolvedHome = (Resolve-Path -LiteralPath $lexicalHome).Path
+    if (-not [StringComparer]::OrdinalIgnoreCase.Equals($resolvedHome, $lexicalHome)) { Stop-With 3 'Codex home must not traverse a reparse point.' }
+    return $resolvedHome
+}
+function Resolve-PetsDirectory([string]$CodexHome, [bool]$Create) {
+    $candidate = Join-Path $CodexHome 'pets'
+    if (Test-Path -LiteralPath $candidate) {
+        $item = Get-Item -LiteralPath $candidate -Force
+        if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point pets directory.' }
+    } elseif (-not $Create) {
+        Stop-With 2 'Pet is not installed.'
+    } else {
+        try { New-Item -ItemType Directory -Path $candidate | Out-Null } catch { Stop-With 4 ("Cannot create pets directory: " + $_.Exception.Message) }
+    }
+    $resolvedPets = (Resolve-Path -LiteralPath $candidate).Path
+    if (-not [StringComparer]::OrdinalIgnoreCase.Equals($resolvedPets, $candidate)) { Stop-With 3 'Pets directory escapes Codex home.' }
+    return $resolvedPets
+}
+function Remove-VerifiedStage([string]$Stage, [string]$Pets) {
+    if (-not (Test-Path -LiteralPath $Stage)) { return $true }
+    if ([IO.Path]::GetDirectoryName($Stage) -ne $Pets -or [IO.Path]::GetFileName($Stage) -notlike '.ellen-joe-pixel.stage.*') { return $false }
+    try { Remove-Item -LiteralPath $Stage -Recurse -Force; return -not (Test-Path -LiteralPath $Stage) } catch { return $false }
+}
+
+$homeInput = $null
+$homeSpecified = $false
+$force = $false
+for ($index = 0; $index -lt $Arguments.Count; $index++) {
+    switch ($Arguments[$index]) {
+        '-CodexHome' {
+            if ($homeSpecified -or $index + 1 -ge $Arguments.Count -or [string]::IsNullOrWhiteSpace($Arguments[$index + 1])) { Stop-With 3 'Invalid -CodexHome value.' }
+            $homeInput = $Arguments[$index + 1]
+            $homeSpecified = $true
+            $index++
+        }
+        '-Force' {
+            if ($force) { Stop-With 3 'Duplicate -Force argument.' }
+            $force = $true
+        }
+        default { Stop-With 3 ("Unknown argument: " + $Arguments[$index]) }
+    }
+}
+if (-not $homeSpecified) {
+    if (-not [string]::IsNullOrWhiteSpace($env:CODEX_HOME)) { $homeInput = $env:CODEX_HOME }
+    elseif (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) { $homeInput = Join-Path $env:USERPROFILE '.codex' }
+    else { Stop-With 3 'Codex home is empty.' }
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $repoRoot 'pet\ellen-joe-pixel'
 try {
@@ -14,17 +71,16 @@ try {
     $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
     if ($manifest.id -ne 'ellen-joe-pixel' -or $manifest.spriteVersionNumber -ne 2 -or $manifest.spritesheetPath -ne 'spritesheet.webp') { Stop-With 3 'Invalid source: manifest contract mismatch.' }
 } catch { Stop-With 3 ("Invalid source: " + $_.Exception.Message) }
-$homeInput = if ($CodexHome) { $CodexHome } elseif ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
-if ([string]::IsNullOrWhiteSpace($homeInput)) { Stop-With 3 'Codex home is empty.' }
-try { $codexHome = [IO.Path]::GetFullPath($homeInput) } catch { Stop-With 3 ("Invalid Codex home: " + $_.Exception.Message) }
-if ($codexHome.TrimEnd('\') -eq [IO.Path]::GetPathRoot($codexHome).TrimEnd('\')) { Stop-With 3 'Codex home cannot be a filesystem root.' }
-$pets = Join-Path $codexHome 'pets'
+
+$codexHome = Resolve-CodexHome $homeInput $true
+$pets = Resolve-PetsDirectory $codexHome $true
 $target = Join-Path $pets 'ellen-joe-pixel'
-try { New-Item -ItemType Directory -Path $pets -Force | Out-Null } catch { Stop-With 4 ("Cannot create pets directory: " + $_.Exception.Message) }
 if (Test-Path -LiteralPath $target) {
-    if ((Get-Item -LiteralPath $target -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { Stop-With 3 'Refusing a reparse-point target.' }
-    if (-not $Force) { Stop-With 2 "Target already exists: $target" }
+    $targetItem = Get-Item -LiteralPath $target -Force
+    if (-not $targetItem.PSIsContainer -or ($targetItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
+    if (-not $force) { Stop-With 2 "Target already exists: $target" }
 }
+
 $stage = Join-Path $pets ('.ellen-joe-pixel.stage.' + [guid]::NewGuid().ToString('N'))
 $backup = $null
 try {
@@ -38,11 +94,15 @@ try {
     Move-Item -LiteralPath $stage -Destination $target
 } catch {
     $failure = $_.Exception.Message
-    if (Test-Path -LiteralPath $stage) { try { Remove-Item -LiteralPath $stage -Recurse -Force } catch { } }
-    if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $target)) {
-        try { Move-Item -LiteralPath $backup -Destination $target } catch { Stop-With 5 ("Install failed and rollback failed: " + $_.Exception.Message) }
+    $cleanupOk = Remove-VerifiedStage $stage $pets
+    $rollbackOk = $true
+    if ($backup) {
+        if ((Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $target)) {
+            try { Move-Item -LiteralPath $backup -Destination $target } catch { $rollbackOk = $false }
+        } else { $rollbackOk = $false }
     }
-    Stop-With 4 ("Install failed; prior target restored when present: $failure")
+    if ($cleanupOk -and $rollbackOk) { Stop-With 4 ("Install failed; prior target restored when present: $failure") }
+    Stop-With 5 ("Install failed and rollback or cleanup failed: $failure")
 }
 Write-Host "Installed: $target"
 if ($backup) { Write-Host "Backup: $backup" }
