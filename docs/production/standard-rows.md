@@ -29,7 +29,7 @@ look-cardinal or look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 initial + 5 repair rounds + 1 rejected complete-row edit | pending | Candidate-2 frames 0–3 contain forbidden shears; the one allowed removal edit changed scale materially and was rejected. |
+| `jumping` | 5 | 2 initial + 5 repair rounds + 2 rejected complete-row edits | pending | Candidate-2 frames 0–3 contain forbidden shears; both prop-free edits changed scale materially and were rejected. |
 | `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
@@ -114,6 +114,13 @@ look-cardinal or look-direction row was generated in this stage.
   decoded, canonical-frame, atlas, contact-sheet, or preview paths.
 - Rejected edit evidence:
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix1.json`.
+- Post-review fix 2 used the fix-1 row as the authoritative empty-hand content
+  source and candidate 2 only as the scale/layout reference. It preserved empty
+  hands, five-pose order, green background, and zero edge pixels, but remained
+  `16.7–24.3%` narrower and `10.7–14.1%` shorter than candidate 2. The common
+  `0.90` transform would preserve that scale deficit, so the row was rejected
+  without promotion. Evidence:
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix2.json`.
 
 ### `failed`
 
@@ -189,3 +196,6 @@ look-cardinal or look-direction row was generated in this stage.
   run. Hash-verified C-drive temporary originals were removed only after their
   byte-identical F-drive copies existed; cleanup evidence is
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\selected-source-cleanup.json`.
+- The round-2 generated original was likewise hash-matched to its retained F-drive
+  evidence before exact deletion; see
+  `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\fix2-selected-source-cleanup.json`.
