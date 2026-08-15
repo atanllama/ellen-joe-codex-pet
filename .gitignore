@@ -1,1 +1,7 @@
 .worktrees/
+.venv/
+__pycache__/
+.pytest_cache/
+dist/
+.DS_Store
+Thumbs.db
