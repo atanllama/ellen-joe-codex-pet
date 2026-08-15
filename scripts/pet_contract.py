@@ -30,6 +30,8 @@ def validate_package(pet_dir: Path) -> list[str]:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         return [f"invalid pet.json: {exc}"]
+    if not isinstance(manifest, dict):
+        return ["pet.json must contain a JSON object"]
 
     expected = {
         "id": EXPECTED_ID,

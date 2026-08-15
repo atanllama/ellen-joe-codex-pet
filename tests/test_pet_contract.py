@@ -58,3 +58,9 @@ def test_wrong_manifest_version_is_rejected(tmp_path: Path) -> None:
     manifest["spriteVersionNumber"] = 1
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     assert "spriteVersionNumber must be 2" in validate_package(pet_dir)
+
+
+def test_non_object_manifest_is_rejected(tmp_path: Path) -> None:
+    pet_dir = write_package(tmp_path)
+    (pet_dir / "pet.json").write_text("[]", encoding="utf-8")
+    assert "pet.json must contain a JSON object" in validate_package(pet_dir)
