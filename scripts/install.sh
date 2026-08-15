@@ -2,7 +2,7 @@
 set -u
 fail() { code=$1; shift; printf '%s\n' "$*" >&2; exit "$code"; }
 is_filesystem_root() {
-    case "$1" in /|//|//* ) return 0 ;; esac
+    case "$1" in /|// ) return 0 ;; esac
     case "$(uname -s)" in
         MINGW*|MSYS*|CYGWIN*)
             case "$1" in /[A-Za-z]|/[A-Za-z]/|[A-Za-z]:|[A-Za-z]:/) return 0 ;; esac
@@ -108,28 +108,56 @@ import sys
 required = {"id", "spriteVersionNumber", "spritesheetPath"}
 
 
-def object_with_safe_required_keys(pairs):
-    value = {}
-    for key, item in pairs:
-        if key in required and key in value:
-            raise ValueError(f"duplicate required key: {key}")
-        value[key] = item
-    return value
+def top_level_keys(source):
+    decoder = json.JSONDecoder()
+
+    def skip_whitespace(index):
+        while index < len(source) and source[index] in " \t\r\n":
+            index += 1
+        return index
+
+    index = skip_whitespace(0)
+    if index == len(source) or source[index] != "{":
+        raise ValueError("manifest must be an object")
+    index += 1
+    keys = []
+    while True:
+        index = skip_whitespace(index)
+        if index >= len(source):
+            raise ValueError("unterminated object")
+        if source[index] == "}":
+            return keys
+        key, index = decoder.raw_decode(source, index)
+        if not isinstance(key, str):
+            raise ValueError("object key is not a string")
+        keys.append(key)
+        index = skip_whitespace(index)
+        if index >= len(source) or source[index] != ":":
+            raise ValueError("missing object colon")
+        _, index = decoder.raw_decode(source, skip_whitespace(index + 1))
+        index = skip_whitespace(index)
+        if index < len(source) and source[index] == "}":
+            return keys
+        if index >= len(source) or source[index] != ",":
+            raise ValueError("missing object comma")
+        index += 1
 
 
 try:
     with open(sys.argv[1], "r", encoding="utf-8", newline=None) as handle:
-        manifest = json.load(handle, object_pairs_hook=object_with_safe_required_keys)
+        source = handle.read()
+    manifest = json.loads(source)
     if type(manifest) is not dict:
         raise ValueError("manifest must be an object")
+    keys = top_level_keys(source)
+    if any(keys.count(key) > 1 for key in required):
+        raise ValueError("duplicate required top-level key")
     if manifest.get("id") != "ellen-joe-pixel":
         raise ValueError("invalid id")
     if type(manifest.get("spriteVersionNumber")) is not int or manifest["spriteVersionNumber"] != 2:
         raise ValueError("invalid sprite version")
     if manifest.get("spritesheetPath") != "spritesheet.webp":
         raise ValueError("invalid spritesheet path")
-    if not isinstance(manifest.get("description"), str) or not manifest["description"].strip():
-        raise ValueError("description must be non-empty")
 except (OSError, ValueError, json.JSONDecodeError, TypeError) as error:
     print(f"Invalid source: manifest contract mismatch ({error}).", file=sys.stderr)
     sys.exit(1)

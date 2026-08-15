@@ -12,7 +12,7 @@ try {
     $env:CODEX_HOME = $fallbackHome
     $manifestPath = Join-Path $fixture 'pet\ellen-joe-pixel\pet.json'
     $sheetPath = Join-Path $fixture 'pet\ellen-joe-pixel\spritesheet.webp'
-    $validManifest = '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"fixture","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
+    $validManifest = '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
     $validManifest | Set-Content -LiteralPath $manifestPath -Encoding UTF8
     [IO.File]::WriteAllBytes($sheetPath, [byte[]](1, 2, 3))
 
@@ -94,19 +94,19 @@ try {
     Assert-Sentinel $fileHome
 
     Assert-Code 0 'install.ps1' @('-CodexHome', $codexHome)
+    Assert-Sentinel $codexHome
     $target = Join-Path $codexHome 'pets\ellen-joe-pixel'
     if (-not (Test-Path "$target\pet.json") -or -not (Test-Path "$target\spritesheet.webp")) { throw 'installed files missing' }
-    Assert-Sentinel $codexHome
     Assert-Code 2 'install.ps1' @('-CodexHome', $codexHome)
     Assert-Sentinel $codexHome
     'old' | Set-Content -LiteralPath (Join-Path $target 'marker.txt')
     Assert-Code 0 'install.ps1' @('-CodexHome', $codexHome, '-Force')
+    Assert-Sentinel $codexHome
     $backup = @(Get-ChildItem -LiteralPath (Join-Path $codexHome 'pets') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
     if ($backup.Count -ne 1 -or -not (Test-Path (Join-Path $backup.FullName 'marker.txt'))) { throw 'backup missing marker' }
-    Assert-Sentinel $codexHome
     Assert-Code 0 'uninstall.ps1' @('-CodexHome', $codexHome)
-    if (Test-Path -LiteralPath $target) { throw 'target survived uninstall' }
     Assert-Sentinel $codexHome
+    if (Test-Path -LiteralPath $target) { throw 'target survived uninstall' }
     Assert-Code 2 'uninstall.ps1' @('-CodexHome', $codexHome)
     Assert-Sentinel $codexHome
 
@@ -124,23 +124,24 @@ try {
     New-TestHome $rollbackHome
     $rollbackTarget = Join-Path $rollbackHome 'pets\ellen-joe-pixel'
     Assert-Code 0 'install.ps1' @('-CodexHome', $rollbackHome)
+    Assert-Sentinel $rollbackHome
     'prior target' | Set-Content -LiteralPath (Join-Path $rollbackTarget 'marker.txt')
     $env:ELLEN_TEST_FAIL_FINAL_MOVE = '1'
     Assert-Code 4 'install.ps1' @('-CodexHome', $rollbackHome, '-Force')
+    Assert-Sentinel $rollbackHome
     Remove-Item Env:ELLEN_TEST_FAIL_FINAL_MOVE
     if (-not (Test-Path (Join-Path $rollbackTarget 'marker.txt'))) { throw 'rollback did not restore prior target' }
     Assert-NoStages $rollbackHome
-    Assert-Sentinel $rollbackHome
     $env:ELLEN_TEST_FAIL_FINAL_MOVE = '1'
     $env:ELLEN_TEST_FAIL_ROLLBACK = '1'
     Assert-Code 5 'install.ps1' @('-CodexHome', $rollbackHome, '-Force')
+    Assert-Sentinel $rollbackHome
     Remove-Item Env:ELLEN_TEST_FAIL_FINAL_MOVE
     Remove-Item Env:ELLEN_TEST_FAIL_ROLLBACK
     if (Test-Path -LiteralPath $rollbackTarget) { throw 'rollback-failure target unexpectedly exists' }
     $rollbackBackup = @(Get-ChildItem -LiteralPath (Join-Path $rollbackHome 'pets') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
     if ($rollbackBackup.Count -ne 1 -or -not (Test-Path (Join-Path $rollbackBackup.FullName 'marker.txt'))) { throw 'rollback-failure backup missing prior target' }
     Assert-NoStages $rollbackHome
-    Assert-Sentinel $rollbackHome
     Write-Host 'OK: Windows installer isolation and safety contract'
 } finally {
     foreach ($entry in @(@('CODEX_HOME', $priorCodexHome), @('ELLEN_TEST_FAIL_FINAL_MOVE', $priorFailFinal), @('ELLEN_TEST_FAIL_ROLLBACK', $priorFailRollback))) {

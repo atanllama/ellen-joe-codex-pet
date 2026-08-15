@@ -10,7 +10,7 @@ cp "$test_dir/../scripts/install.sh" "$test_dir/../scripts/uninstall.sh" "$fixtu
 manifest="$fixture/pet/ellen-joe-pixel/pet.json"
 sheet="$fixture/pet/ellen-joe-pixel/spritesheet.webp"
 canonical_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
-valid_manifest='{ "extra": true, "spritesheetPath" : "spritesheet.webp", "description" : "A different non-empty fixture description", "spriteVersionNumber" : 2, "id" : "ellen-joe-pixel" }'
+valid_manifest='{ "metadata": { "id": "nested first", "id": "nested last", "spriteVersionNumber": 20, "spritesheetPath": "other.webp" }, "extra": true, "spritesheetPath" : "spritesheet.webp", "spriteVersionNumber" : 2, "id" : "ellen-joe-pixel" }'
 printf '%s\r\n' "$valid_manifest" > "$manifest"
 printf '\001\002\003' > "$sheet"
 
@@ -59,6 +59,9 @@ printf '%s\n' '[]' > "$manifest"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
 assert_sentinel "$home"
 printf '%s\n' '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spriteVersionNumber":20,"spritesheetPath":"spritesheet.webp"}' > "$manifest"
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
+printf '%s\n' '{"id":"ellen-joe-pixel","id":"not-ellen","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}' > "$manifest"
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
 assert_sentinel "$home"
 printf '%s\n' "$canonical_manifest" > "$manifest"
@@ -110,6 +113,14 @@ case "$(uname -s)" in
         ;;
 esac
 
+{
+    printf '%s\n' '#!/bin/sh'
+    sed -n '/^is_filesystem_root()/,/^}/p' "$fixture/scripts/install.sh"
+    printf '%s\n' 'is_filesystem_root "//server/share/codex-home"'
+    printf '%s\n' 'exit $?'
+} > "$fixture/root-classifier.sh"
+assert_code 1 sh "$fixture/root-classifier.sh"
+
 linked_home="$temp_root/linked home"
 outside="$temp_root/outside"
 new_test_home "$outside"
@@ -137,19 +148,19 @@ assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$file_home"
 assert_sentinel "$file_home"
 
 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
 test -f "$home/pets/ellen-joe-pixel/pet.json"
 test -f "$home/pets/ellen-joe-pixel/spritesheet.webp"
-assert_sentinel "$home"
 assert_code 2 sh "$fixture/scripts/install.sh" --codex-home "$home"
 assert_sentinel "$home"
 printf '%s\n' old > "$home/pets/ellen-joe-pixel/marker.txt"
 sh "$fixture/scripts/install.sh" --codex-home "$home" --force
+assert_sentinel "$home"
 backup=$(single_backup "$home")
 test -f "$backup/marker.txt"
-assert_sentinel "$home"
 sh "$fixture/scripts/uninstall.sh" --codex-home "$home"
-test ! -e "$home/pets/ellen-joe-pixel"
 assert_sentinel "$home"
+test ! -e "$home/pets/ellen-joe-pixel"
 assert_code 2 sh "$fixture/scripts/uninstall.sh" --codex-home "$home"
 assert_sentinel "$home"
 
@@ -157,6 +168,7 @@ rollback_home="$temp_root/rollback home"
 new_test_home "$rollback_home"
 rollback_pets="$rollback_home/pets"
 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home"
+assert_sentinel "$rollback_home"
 printf '%s\n' 'prior target' > "$rollback_pets/ellen-joe-pixel/marker.txt"
 real_mv=$(command -v mv)
 mkdir -p "$fixture/bin"
@@ -172,13 +184,13 @@ exec "\$ELLEN_REAL_MV" "\$@"
 EOF
 chmod +x "$fixture/bin/mv"
 assert_code 4 env PATH="$fixture/bin:$PATH" ELLEN_REAL_MV="$real_mv" ELLEN_TEST_FAIL_FINAL_MOVE=1 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home" --force
+assert_sentinel "$rollback_home"
 test -f "$rollback_pets/ellen-joe-pixel/marker.txt"
 assert_no_stages "$rollback_home"
-assert_sentinel "$rollback_home"
 assert_code 5 env PATH="$fixture/bin:$PATH" ELLEN_REAL_MV="$real_mv" ELLEN_TEST_FAIL_FINAL_MOVE=1 ELLEN_TEST_FAIL_ROLLBACK=1 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home" --force
+assert_sentinel "$rollback_home"
 test ! -e "$rollback_pets/ellen-joe-pixel"
 backup=$(single_backup "$rollback_home")
 test -f "$backup/marker.txt"
 assert_no_stages "$rollback_home"
-assert_sentinel "$rollback_home"
 printf '%s\n' 'OK: POSIX installer isolation and safety contract'

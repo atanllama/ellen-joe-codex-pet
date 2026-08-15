@@ -2,7 +2,7 @@
 set -u
 fail() { code=$1; shift; printf '%s\n' "$*" >&2; exit "$code"; }
 is_filesystem_root() {
-    case "$1" in /|//|//* ) return 0 ;; esac
+    case "$1" in /|// ) return 0 ;; esac
     case "$(uname -s)" in
         MINGW*|MSYS*|CYGWIN*)
             case "$1" in /[A-Za-z]|/[A-Za-z]/|[A-Za-z]:|[A-Za-z]:/) return 0 ;; esac
