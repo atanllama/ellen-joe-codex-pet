@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import re
 import tarfile
@@ -33,10 +34,26 @@ def build_release(repo_root: Path, version: str, output_dir: Path) -> tuple[Path
     sums_path = output_dir / "SHA256SUMS.txt"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for relative in INCLUDED:
-            archive.write(repo_root / relative, f"{root_name}/{relative}")
-    with tarfile.open(tar_path, "w:gz") as archive:
-        for relative in INCLUDED:
-            archive.add(repo_root / relative, arcname=f"{root_name}/{relative}", recursive=False)
+            info = zipfile.ZipInfo(f"{root_name}/{relative}", (1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, (repo_root / relative).read_bytes())
+    with tar_path.open("wb") as raw_file:
+        with gzip.GzipFile(fileobj=raw_file, mode="wb", mtime=0) as compressed:
+            with tarfile.open(fileobj=compressed, mode="w", format=tarfile.USTAR_FORMAT) as archive:
+                for relative in INCLUDED:
+                    path = repo_root / relative
+                    info = tarfile.TarInfo(f"{root_name}/{relative}")
+                    info.size = path.stat().st_size
+                    info.mode = 0o644
+                    info.mtime = 0
+                    info.uid = 0
+                    info.gid = 0
+                    info.uname = ""
+                    info.gname = ""
+                    with path.open("rb") as source:
+                        archive.addfile(info, source)
     lines = [
         f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}"
         for path in (zip_path, tar_path)

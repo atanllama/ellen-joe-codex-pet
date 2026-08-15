@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import tarfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -46,3 +48,18 @@ def test_release_rejects_invalid_version(tmp_path: Path) -> None:
         assert str(exc) == "version must match vMAJOR.MINOR.PATCH"
     else:
         raise AssertionError("invalid version was accepted")
+
+
+def test_release_is_byte_reproducible(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    fake_repo(repo)
+    first = build_release(repo, "v0.1.0", tmp_path / "first")
+    for index, relative in enumerate(INCLUDED):
+        path = repo / relative
+        os.utime(path, (1_700_000_000 + index, 1_700_000_000 + index))
+    time.sleep(1.1)
+    second = build_release(repo, "v0.1.0", tmp_path / "second")
+    assert first[0].read_bytes() == second[0].read_bytes()
+    assert first[1].read_bytes() == second[1].read_bytes()
+    assert first[2].read_text(encoding="ascii") == second[2].read_text(encoding="ascii")
