@@ -1,7 +1,7 @@
 # Ellen Joe Pixel standard-row production record
 
-**Status:** Blocked after post-authorization review; eight rows accepted,
-`jumping` pending
+**Status:** Accepted; all nine standard rows are complete and eligible for the
+Task 7 intermediate-atlas gate
 
 **Run directory:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`
 
@@ -17,9 +17,12 @@ Retry counts below mean additional complete-row generation attempts after the
 first attempt. A row was accepted only after the selected source was copied to
 its decoded path, the decoded copy matched the selected source by SHA-256,
 deterministic inspection completed, and the normal-size strip plus GIF were
-reviewed. Independent re-review invalidated the current jumping selection for a
-forbidden prop, so Task 7 must not consume the intermediate atlas. No
-look-cardinal or look-direction row was generated in this stage.
+reviewed. Independent re-review invalidated the earlier candidate-2 jumping
+selection for a forbidden prop. A later coherent, prop-free complete-row
+imagegen result was accepted only after the user explicitly authorized scale
+`1.00` placement: no resampling, horizontal centering, and whole-sprite vertical
+translation to the five approved bottom anchors. No look-cardinal or
+look-direction row was generated in this stage.
 
 ## Acceptance summary
 
@@ -29,7 +32,7 @@ look-cardinal or look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 initial + 5 repair rounds + 3 rejected complete-row edits | pending | Candidate-2 frames 0–3 contain forbidden shears; all three prop-free edits changed scale materially and were rejected. |
+| `jumping` | 5 | 2 initial + 5 SDD repair rounds + 5 post-review complete-row edits | stable-slots plus authorized scale-1.00 placement | Five empty-handed beats form crouch, lift, peak, descent, and settle with stable feature scale, no effect, and exclusive bottoms `203,193,183,193,203`. |
 | `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
@@ -88,9 +91,9 @@ look-cardinal or look-direction row was generated in this stage.
 - Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\jumping.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\jumping.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\jumping.png`
-- Decoded SHA-256: `774D9C925B88EA477B4E1FD89C1E1F3AD329291434C7E439D52E6374417F330E`
+- Decoded SHA-256: `D2F99F38686C391A1390E46EF9B39F2ACD373877A067C73FCA3D01226F9C072A`
 - Deterministic report: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\rows\jumping\review.json`
-- Authorized transform provenance: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-authorized-transform.json`
+- Authorized transform provenance: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-authorized-scale1-transform.json`
 - GIF: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\previews\jumping.gif`
 - Repair history (RED): the originally accepted source and all five bounded SDD
   repairs failed independent normal-size review for major scale or head/torso
@@ -132,6 +135,23 @@ look-cardinal or look-direction row was generated in this stage.
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-post-review-fix3.json`;
   guide provenance:
   `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\rows\jumping\target-layout-reference.json`.
+- Post-review prop fix rounds 4 and 5 kept the five hands empty and introduced
+  no prop or effect. Round 4 retained a 28-pixel source-level baseline arc and
+  was rejected. Round 5 aligned its source bottoms to `203,202,203,202,202`
+  with zero edge pixels, but its `54–56 px` face proxy missed the then-required
+  candidate-2 scale and was initially rejected. Historical evidence remains in
+  `qa/jumping-post-review-prop-fix-round4.json` and
+  `qa/jumping-post-review-prop-fix-round5.json`.
+- Final resolution: the user explicitly authorized using that complete,
+  prop-free round-5 source at common scale `1.00`. The guarded deterministic
+  script used the reviewed stable-slots frames, performed no resampling or
+  content edit, horizontally centered each unscaled sprite, and translated the
+  complete frames vertically by `0,-9,-20,-9,+1 px`. The exclusive alpha-bbox
+  bottoms are `203,193,183,193,203`. Machine-readable proof confirms every
+  input/output RGBA crop is byte-identical, every visible-pixel RGBA sequence
+  and alpha area is unchanged, and every frame has zero edge pixels. Normal-size
+  review confirms the five-beat arc, stable head/face scale, empty hands, no
+  prop discontinuity, and no clipping.
 
 ### `failed`
 
@@ -189,20 +209,21 @@ look-cardinal or look-direction row was generated in this stage.
 
 ## Aggregate standard-row gate
 
-- **Overall gate: failed.** `qa/review.json` still reports deterministic
-  structure `ok: true`, but that report cannot waive the visual-semantic shears
-  failure in `jumping`.
-- All 57 used frames are `192 x 208`, non-empty, clear of cell edges, and
-  extracted with the run's chroma key and threshold, but the five active
-  jumping frames are not packaging eligible.
-- `final/spritesheet.webp` is the deterministic `1536 x 1872` rows 0–8
-  diagnostic only; it is invalid for Task 7 because it contains the rejected
-  jumping row.
-- `qa/contact-sheet.png` and `qa/previews/jumping.gif` remain diagnostic
-  evidence of the forbidden shears rather than accepted QA outputs.
-- The manifest marks `base` plus eight standard rows complete and `jumping`
-  pending with the current blocker. `look-cardinals`, `look-row-9`, and
-  `look-row-10` remain pending, and no decoded look asset exists.
+- **Overall gate: passed.** `qa/review.json` reports `ok: true`, 57 frames,
+  zero errors, and only the two expected reviewed stable-slots warnings for
+  `jumping` and `failed`.
+- All 57 used frames are `192 x 208`, non-empty, and clear of cell edges. The
+  active jumping source, selected copy, and decoded copy are byte-identical at
+  SHA-256
+  `D2F99F38686C391A1390E46EF9B39F2ACD373877A067C73FCA3D01226F9C072A`.
+- `final/spritesheet.png` and `final/spritesheet.webp` are the regenerated
+  deterministic `1536 x 1872` rows 0–8 intermediate accepted for Task 7.
+- `qa/contact-sheet.png` and all nine `qa/previews/*.gif` files were regenerated
+  from the current 57-frame tree. Normal-size review passes the five-beat jump
+  and the stable failed collapse.
+- The manifest marks `base` plus all nine standard rows complete and marks
+  `jumping` packaging eligible. `look-cardinals`, `look-row-9`, and
+  `look-row-10` remain pending, and no decoded look asset exists yet.
 - Current base and all row selected-source manifest paths point under the F-drive
   run. Hash-verified C-drive temporary originals were removed only after their
   byte-identical F-drive copies existed; cleanup evidence is
