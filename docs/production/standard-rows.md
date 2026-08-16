@@ -32,7 +32,7 @@ look-direction row was generated in this stage.
 | `running-right` | 8 | 1 | components | Unmistakable right-facing alternating low trot with continuously attached shears. |
 | `running-left` | 8 | 0 | components | Independently generated left-facing alternating low trot with preserved asymmetry, grip, and tail structure. |
 | `waving` | 4 | 0 | components | Down/raise/tilt/return greeting through the hand and body only; unarmed. |
-| `jumping` | 5 | 2 initial + 5 SDD repair rounds + 5 post-review complete-row edits | stable-slots plus authorized scale-1.00 placement | Five empty-handed beats form crouch, lift, peak, descent, and settle with stable feature scale, no effect, and exclusive bottoms `203,193,183,193,203`. |
+| `jumping` | 5 | 2 initial + 5 SDD repair rounds + 6 post-review complete-row edits | stable-slots plus authorized scale-1.00 placement | Five empty-handed beats form crouch, lift, peak, descent, and settle with stable feature scale, neutral graphite/charcoal identity, no effect, and exclusive bottoms `203,193,183,193,203`. |
 | `failed` | 8 | 3 | stable-slots | Compact shears lower while shoulders collapse, eyes close, and tail droops without extraction-induced growth. |
 | `waiting` | 6 | 1 | components | Restrained expectant hand/lean sequence, distinct from idle and review and unarmed. |
 | `running` | 6 | 1 | components | Planted-foot active shears work with eye tracking; no literal locomotion. |
@@ -91,7 +91,7 @@ look-direction row was generated in this stage.
 - Selected source: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\selected-sources\jumping.png`
 - Prompt: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\prompts\rows\jumping.md`
 - Decoded row: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\decoded\jumping.png`
-- Decoded SHA-256: `D2F99F38686C391A1390E46EF9B39F2ACD373877A067C73FCA3D01226F9C072A`
+- Decoded SHA-256: `AF1D856937B5012D4AE5CA805E7D28B8EE60B32447E6632E532C37CB829AAF93`
 - Deterministic report: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\rows\jumping\review.json`
 - Authorized transform provenance: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\jumping-authorized-scale1-transform.json`
 - GIF: `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\previews\jumping.gif`
@@ -152,6 +152,24 @@ look-direction row was generated in this stage.
   and alpha area is unchanged, and every frame has zero edge pixels. Normal-size
   review confirms the five-beat arc, stable head/face scale, empty hands, no
   prop discontinuity, and no clipping.
+- Independent review fix round 1 found that the otherwise accepted source had a
+  burgundy/red-brown cast inconsistent with the canonical graphite identity.
+  One complete-row built-in imagegen palette-only edit used the active source as
+  the pose/geometry/empty-hand authority and the canonical, idle, and failed art
+  as palette authorities. It reduced the defined dark-pixel mean `R-G` from
+  `21.568` to `6.674`; the accepted idle and failed references measure `9.427`
+  and `10.539`. Normal-size review confirms neutral graphite/charcoal hair,
+  dress, tail, and stockings while white, skin, eyes, and intentional red
+  accents remain intact. Source bottoms are `203,203,203,203,202`, face-proxy
+  widths are `55,54,53,55,56` versus the prior `55,55,54,56,56`, all bbox-edge
+  deltas are at most 2 px, and all five cells remain empty-handed and edge-free.
+  The accepted edit evidence is `qa/jumping-palette-fix-review1.json`.
+- Review fix round 1 also corrected `qa/selected-source-cleanup.json`: the
+  historical candidate-2 hash
+  `774D9C925B88EA477B4E1FD89C1E1F3AD329291434C7E439D52E6374417F330E`
+  now points to immutable
+  `selected-sources/jumping-fix-round1-candidate2-rejected.png`, not the active
+  `jumping.png` path.
 
 ### `failed`
 
@@ -215,12 +233,12 @@ look-direction row was generated in this stage.
 - All 57 used frames are `192 x 208`, non-empty, and clear of cell edges. The
   active jumping source, selected copy, and decoded copy are byte-identical at
   SHA-256
-  `D2F99F38686C391A1390E46EF9B39F2ACD373877A067C73FCA3D01226F9C072A`.
+  `AF1D856937B5012D4AE5CA805E7D28B8EE60B32447E6632E532C37CB829AAF93`.
 - `final/spritesheet.png` and `final/spritesheet.webp` are the regenerated
   deterministic `1536 x 1872` rows 0–8 intermediate accepted for Task 7.
 - `qa/contact-sheet.png` and all nine `qa/previews/*.gif` files were regenerated
-  from the current 57-frame tree. Normal-size review passes the five-beat jump
-  and the stable failed collapse.
+  from the current 57-frame tree. Normal-size review passes the five-beat jump,
+  its canonical neutral palette, and the stable failed collapse.
 - The manifest marks `base` plus all nine standard rows complete and marks
   `jumping` packaging eligible. `look-cardinals`, `look-row-9`, and
   `look-row-10` remain pending, and no decoded look asset exists yet.
