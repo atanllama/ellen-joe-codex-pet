@@ -99,7 +99,8 @@ assert_sentinel "$home"
 [ ! -e "$home/pets/ellen-joe-pixel" ] || fail_test 'invalid atlas was installed'
 cp "$test_dir/../pet/ellen-joe-pixel/spritesheet.webp" "$sheet"
 
-root_alias=/tmp/..
+# Resolve through a real root child; macOS symlinks /tmp to /private/tmp.
+root_alias=/usr/..
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$root_alias"
 assert_sentinel "$home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$root_alias"
