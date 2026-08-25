@@ -7,7 +7,8 @@ from PIL import Image
 
 CELL_SIZE = (192, 208)
 EXPECTED_SIZE = (1536, 2288)
-USED_COUNTS = (6, 8, 8, 4, 5, 8, 6, 6, 6, 8, 8)
+# The v2 atlas reserves the seventh idle slot for the neutral look frame.
+USED_COUNTS = (7, 8, 8, 4, 5, 8, 6, 6, 6, 8, 8)
 EXPECTED_ID = "ellen-joe-pixel"
 EXPECTED_DISPLAY_NAME = "Ellen Joe Pixel"
 

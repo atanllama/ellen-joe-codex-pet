@@ -36,6 +36,16 @@ def test_valid_package_has_no_errors(tmp_path: Path) -> None:
     assert validate_package(write_package(tmp_path)) == []
 
 
+def test_v2_idle_row_reserves_neutral_look_frame(tmp_path: Path) -> None:
+    pet_dir = write_package(tmp_path)
+    with Image.open(pet_dir / "spritesheet.webp") as loaded:
+        alpha = loaded.convert("RGBA").getchannel("A")
+    neutral = alpha.crop((6 * 192, 0, 7 * 192, 208))
+    unused = alpha.crop((7 * 192, 0, 8 * 192, 208))
+    assert neutral.getbbox() is not None
+    assert unused.getbbox() is None
+
+
 def test_wrong_atlas_size_is_rejected(tmp_path: Path) -> None:
     errors = validate_package(write_package(tmp_path, size=(192, 208)))
     assert "spritesheet must be 1536x2288, got 192x208" in errors

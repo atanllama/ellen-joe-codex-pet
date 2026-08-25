@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 2,
+  "coordinateSystem": "viewer/screen coordinates; clockwise; 000=up, 090=screen-right, 180=down, 270=screen-left",
+  "atlas": "../spritesheet.png",
+  "atlasSha256": "C253482A02875673CB844F38CE4FC8C4992B8B8CCCF96E5A1B8427CD4DF08356",
+  "directions": [
+    {"direction":"000","horizontal":"none","vertical":"up","cardinal":true,"expected":{"horizontal":"none","vertical":"up"},"observed":{"horizontal":"none","vertical":"up"},"verdict":"pass","reason":"hard vertical blind pair confirmed up"},
+    {"direction":"022.5","horizontal":"screen-right","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"up"},"observed":{"horizontal":"subtle screen-right","vertical":"up"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous; labeled native-size loop confirms correct near-axis quadrant"},
+    {"direction":"045","horizontal":"screen-right","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"up"},"observed":{"horizontal":"screen-right","vertical":"up"},"verdict":"pass","reason":"both axes confirmed by blind majority"},
+    {"direction":"067.5","horizontal":"screen-right","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"up"},"observed":{"horizontal":"screen-right","vertical":"up"},"verdict":"pass","reason":"both axes confirmed by blind majority"},
+    {"direction":"090","horizontal":"screen-right","vertical":"none","cardinal":true,"expected":{"horizontal":"screen-right","vertical":"none"},"observed":{"horizontal":"screen-right","vertical":"none"},"verdict":"pass","reason":"hard horizontal blind pair confirmed screen-right"},
+    {"direction":"112.5","horizontal":"screen-right","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"down"},"observed":{"horizontal":"subtle screen-right","vertical":"down"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous; labeled native-size loop confirms continuous down-right quadrant"},
+    {"direction":"135","horizontal":"screen-right","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"down"},"observed":{"horizontal":"subtle screen-right","vertical":"down"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous; labeled native-size loop confirms no reversal"},
+    {"direction":"157.5","horizontal":"screen-right","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"down"},"observed":{"horizontal":"subtle screen-right","vertical":"down"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous near 180; labeled loop confirms the final right/down step"},
+    {"direction":"180","horizontal":"none","vertical":"down","cardinal":true,"expected":{"horizontal":"none","vertical":"down"},"observed":{"horizontal":"none","vertical":"down"},"verdict":"pass","reason":"hard vertical blind pair confirmed down"},
+    {"direction":"202.5","horizontal":"screen-left","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"down"},"observed":{"horizontal":"screen-left","vertical":"down"},"verdict":"pass","reason":"both axes confirmed by blind majority"},
+    {"direction":"225","horizontal":"screen-left","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"down"},"observed":{"horizontal":"screen-left","vertical":"down"},"verdict":"pass","reason":"both axes confirmed by blind majority"},
+    {"direction":"247.5","horizontal":"screen-left","vertical":"down","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"down"},"observed":{"horizontal":"screen-left","vertical":"subtle down"},"verdict":"pass-with-accepted-minor","reason":"vertical blind majority ambiguous; labeled native-size loop confirms correct near-axis quadrant"},
+    {"direction":"270","horizontal":"screen-left","vertical":"none","cardinal":true,"expected":{"horizontal":"screen-left","vertical":"none"},"observed":{"horizontal":"screen-left","vertical":"none"},"verdict":"pass","reason":"hard horizontal blind pair confirmed screen-left"},
+    {"direction":"292.5","horizontal":"screen-left","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"up"},"observed":{"horizontal":"screen-left","vertical":"subtle up"},"verdict":"pass-with-accepted-minor","reason":"vertical blind majority ambiguous; labeled native-size loop confirms correct near-axis quadrant"},
+    {"direction":"315","horizontal":"screen-left","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"up"},"observed":{"horizontal":"screen-left","vertical":"up"},"verdict":"pass","reason":"both axes confirmed by blind majority"},
+    {"direction":"337.5","horizontal":"screen-left","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"up"},"observed":{"horizontal":"subtle screen-left","vertical":"up"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous near 000; labeled loop confirms the final left/up step"}
+  ],
+  "evidence": {
+    "labeledSheet": "look-directions.png",
+    "blindSheet": "look-directions-blind.png",
+    "blindAnswerKey": "look-directions-blind-answer-key.json",
+    "blindConsensus": "look-directions-blind-consensus.json",
+    "blindValidation": "look-directions-blind-validation.json",
+    "labeledWarningResolution": "labeled-warning-resolution.md",
+    "continuity": "look-continuity.json",
+    "nativeRow9Review": "../../qa/task-8-final-row9-v2-independent-review-pass.md",
+    "nativeRow10Review": "../../qa/task-9-row10-attempt1-independent-visual-pass.md"
+  }
+}
+
