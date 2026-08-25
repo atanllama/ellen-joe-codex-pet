@@ -1,8 +1,8 @@
 # Final QA — Ellen Joe Pixel v0.1.0
 
-**Status:** accepted for private packaging  
-**Visual verdict:** `visual_qa=pass`  
-**QA date:** 2026-08-25  
+**Status:** accepted for private packaging
+**Visual verdict:** `visual_qa=pass`
+**QA date:** 2026-08-25
 **Artifact run:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`
 
 This record describes the exact final-v2 evidence used for the staged package.
@@ -53,6 +53,22 @@ Row 10's accepted registered candidate is recorded at
 `qa/task-9-row10-attempt1-registered-candidate.png` with SHA-256
 `E30D37468A8976447C6638A050CB3AE4CEE47F664F9E7A9AF004FE96672818DA`.
 
+### Task 9 source paths and retry ledger
+
+The complete source-of-truth paths below are under
+`F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`:
+
+| Stage | Accepted source and derived evidence | Retry count |
+| --- | --- | ---: |
+| Cardinal anchors | `decoded/look-anchors-approved.png`; source family attempts are recorded in `imagegen-jobs.json` and the semantic gate is `qa/cardinal-semantics.json` | 3 total family attempts (2 retries); cardinal repairs `000=1`, `090=1`, `180=2`, `270=1` |
+| Look row 9 | `qa/task-8-final-row9-candidate-v2.png`; registered output `decoded/look-row-9.png`; promotion record is `qa/task-8-final-row9-lineage-v2.json` | 9 total complete-row attempts (8 retries); review-repair generations: round 1=1, round 2=1, round 3=1, round 4=2, round 5=1; separate tail-source attempt+repair=2 |
+| Look row 10 | `selected-sources/look-row-10-attempt1.png`; registered candidate `qa/task-9-row10-attempt1-registered-candidate.png`; mechanical report `qa/task-9-row10-mechanical-qa-report.md` | 1 total attempt (0 retries) |
+| Final v2 assembly | `final-v2/spritesheet-pre-despill.png` → `final-v2/spritesheet.png` and `final-v2/spritesheet.webp`; manifests `final-v2/assembly-manifest.json` and `final-v2/final-manifest.json` | 1 completed-atlas despill invocation; no row-level despill or post-gate imagery retry |
+
+The staged-package source hashes are the final-v2 WebP hash in the identity
+table above and the row hashes recorded immediately before this ledger. No
+rejected source was copied into the repository.
+
 Evidence for the cross-row and internal geometry gates is:
 
 - `qa/task-9-row10-mechanical-qa-report.md`
@@ -92,6 +108,12 @@ is exactly `visual_qa=pass` across the standard animations and the full look
 loop. Weapons appear only in permitted work/review states; look rows are
 unarmed. No shadow, text, detached effect, clipping, or broken attachment was
 accepted.
+
+| Warning | Resolution and final status | Evidence |
+| --- | --- | --- |
+| Seven intermediate axes were ambiguous in strict blind majority | Labeled native-size review confirmed the intended clockwise quadrant and loop; accepted as minor warnings | `final-v2/qa/labeled-warning-resolution.md` |
+| Heuristic alpha holes at `247.5`, `270`, `292.5` and local continuity outliers | Reviewed as intentional negative space or normal direction changes; no visible defect; accepted | `final-v2/qa/look-continuity.json`, `final-v2/qa/final-visual-qa.md` |
+| Two isolated opaque key-color pixels in cell diagnostics | v2 validator accepted them and native-size visual QA found no visible defect | `final-v2/validation-v2.json`, `final-v2/qa/final-visual-qa.md` |
 
 ## Single completed-atlas despill
 

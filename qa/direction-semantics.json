@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "coordinateSystem": "viewer/screen coordinates; clockwise; 000=up, 090=screen-right, 180=down, 270=screen-left",
-  "atlas": "../spritesheet.png",
-  "atlasSha256": "C253482A02875673CB844F38CE4FC8C4992B8B8CCCF96E5A1B8427CD4DF08356",
+  "atlas": "../pet/ellen-joe-pixel/spritesheet.webp",
+  "atlasSha256": "C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6",
   "directions": [
     {"direction":"000","horizontal":"none","vertical":"up","cardinal":true,"expected":{"horizontal":"none","vertical":"up"},"observed":{"horizontal":"none","vertical":"up"},"verdict":"pass","reason":"hard vertical blind pair confirmed up"},
     {"direction":"022.5","horizontal":"screen-right","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-right","vertical":"up"},"observed":{"horizontal":"subtle screen-right","vertical":"up"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous; labeled native-size loop confirms correct near-axis quadrant"},
@@ -22,15 +22,13 @@
     {"direction":"337.5","horizontal":"screen-left","vertical":"up","cardinal":false,"expected":{"horizontal":"screen-left","vertical":"up"},"observed":{"horizontal":"subtle screen-left","vertical":"up"},"verdict":"pass-with-accepted-minor","reason":"horizontal blind majority ambiguous near 000; labeled loop confirms the final left/up step"}
   ],
   "evidence": {
+    "contactSheet": "contact-sheet.png",
     "labeledSheet": "look-directions.png",
-    "blindSheet": "look-directions-blind.png",
-    "blindAnswerKey": "look-directions-blind-answer-key.json",
+    "blindReviewSummary": "blind-review-summary.md",
     "blindConsensus": "look-directions-blind-consensus.json",
     "blindValidation": "look-directions-blind-validation.json",
     "labeledWarningResolution": "labeled-warning-resolution.md",
     "continuity": "look-continuity.json",
-    "nativeRow9Review": "../../qa/task-8-final-row9-v2-independent-review-pass.md",
-    "nativeRow10Review": "../../qa/task-9-row10-attempt1-independent-visual-pass.md"
+    "finalVisualQa": "final-visual-qa.md"
   }
 }
-

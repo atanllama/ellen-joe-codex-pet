@@ -10,4 +10,3 @@ Three isolated reviewers received only the unlabeled A/B sheet. Their verdicts w
 - Labeled warning resolution: PASS; accepted minor warnings
 
 No reviewer received the answer key before submitting a verdict. Superseded or interrupted reviewers were not included in the three-vote consensus.
-

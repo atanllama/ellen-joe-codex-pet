@@ -1,7 +1,7 @@
 # Labeled native-size resolution of blind direction warnings
 
-Date: 2026-08-25  
-Reviewer: independent Luna/max subagent (`task_9_labeled_warning_review`)  
+Date: 2026-08-25
+Reviewer: independent Luna/max subagent (`task_9_labeled_warning_review`)
 Verdict: **PASS — accepted minor warnings**
 
 The three isolated blind reviews produced zero hard-gate errors and zero unconfirmed hard pairs. Cardinal horizontal `090/270` and cardinal vertical `000/180` were correctly distinguished. Strict majority marked seven review-only intermediate axes ambiguous; labeled native-size and 16-frame loop review confirms that every affected pose remains in its intended quadrant without reversal:
@@ -24,4 +24,3 @@ Evidence:
 - `look-directions-blind-validation.json`
 - `look-continuity.json`
 - `direction-semantics.json`
-
