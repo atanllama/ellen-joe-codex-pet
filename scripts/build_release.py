@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import gzip
 import hashlib
+import io
 import re
 import tarfile
 import zipfile
@@ -18,6 +19,24 @@ INCLUDED = (
     "README.md",
     "NOTICE.md",
 )
+TEXT_INCLUDED = frozenset(
+    {
+        "pet/ellen-joe-pixel/pet.json",
+        "scripts/install.ps1",
+        "scripts/uninstall.ps1",
+        "scripts/install.sh",
+        "scripts/uninstall.sh",
+        "README.md",
+        "NOTICE.md",
+    }
+)
+
+
+def _release_bytes(relative: str, path: Path) -> bytes:
+    data = path.read_bytes()
+    if relative in TEXT_INCLUDED:
+        return data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return data
 
 
 def build_release(repo_root: Path, version: str, output_dir: Path) -> tuple[Path, Path, Path]:
@@ -34,26 +53,27 @@ def build_release(repo_root: Path, version: str, output_dir: Path) -> tuple[Path
     sums_path = output_dir / "SHA256SUMS.txt"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for relative in INCLUDED:
+            data = _release_bytes(relative, repo_root / relative)
             info = zipfile.ZipInfo(f"{root_name}/{relative}", (1980, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.create_system = 3
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, (repo_root / relative).read_bytes())
+            archive.writestr(info, data)
     with tar_path.open("wb") as raw_file:
         with gzip.GzipFile(fileobj=raw_file, mode="wb", mtime=0) as compressed:
             with tarfile.open(fileobj=compressed, mode="w", format=tarfile.USTAR_FORMAT) as archive:
                 for relative in INCLUDED:
                     path = repo_root / relative
+                    data = _release_bytes(relative, path)
                     info = tarfile.TarInfo(f"{root_name}/{relative}")
-                    info.size = path.stat().st_size
+                    info.size = len(data)
                     info.mode = 0o644
                     info.mtime = 0
                     info.uid = 0
                     info.gid = 0
                     info.uname = ""
                     info.gname = ""
-                    with path.open("rb") as source:
-                        archive.addfile(info, source)
+                    archive.addfile(info, io.BytesIO(data))
     lines = [
         f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}"
         for path in (zip_path, tar_path)
