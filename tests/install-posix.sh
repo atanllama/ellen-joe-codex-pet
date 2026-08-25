@@ -206,6 +206,8 @@ assert_sentinel "$home"
 
 rollback_home="$temp_root/rollback home"
 new_test_home "$rollback_home"
+# Match the installer's physical path when macOS TMPDIR is symlinked.
+rollback_home=$(CDPATH= cd -P "$rollback_home" && pwd -P)
 rollback_pets="$rollback_home/pets"
 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home"
 assert_sentinel "$rollback_home"
