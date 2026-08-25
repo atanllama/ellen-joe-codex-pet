@@ -35,6 +35,7 @@ is_link_or_reparse() {
 }
 canonical_existing_home() {
     [ -n "$1" ] || fail 3 'Invalid Codex home.'
+    is_link_or_reparse "$1" && fail 3 'Refusing a symbolic-link or reparse-point Codex home.'
     [ -e "$1" ] || fail 2 'Pet is not installed.'
     [ -d "$1" ] || fail 3 'Refusing a non-directory Codex home.'
     result=$(CDPATH= cd -P "$1" && pwd -P) || fail 3 'Cannot resolve Codex home.'

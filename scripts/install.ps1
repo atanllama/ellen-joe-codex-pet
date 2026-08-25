@@ -69,8 +69,14 @@ try {
     $manifestPath = Join-Path $source 'pet.json'
     $sheetPath = Join-Path $source 'spritesheet.webp'
     $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
-    if ($manifest.id -ne 'ellen-joe-pixel' -or $manifest.spriteVersionNumber -ne 2 -or $manifest.spritesheetPath -ne 'spritesheet.webp') { Stop-With 3 'Invalid source: manifest contract mismatch.' }
+    if ($manifest.id -ne 'ellen-joe-pixel' -or $manifest.displayName -ne 'Ellen Joe Pixel' -or $manifest.spriteVersionNumber -ne 2 -or $manifest.spritesheetPath -ne 'spritesheet.webp' -or $manifest.description -isnot [string] -or [string]::IsNullOrWhiteSpace($manifest.description)) { Stop-With 3 'Invalid source: manifest contract mismatch.' }
 } catch { Stop-With 3 ("Invalid source: " + $_.Exception.Message) }
+
+$expectedSpritesheetSha256 = 'C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6'
+try {
+    $actualSpritesheetSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $sheetPath).Hash.ToUpperInvariant()
+} catch { Stop-With 3 ("Invalid source: cannot hash spritesheet.webp: " + $_.Exception.Message) }
+if ($actualSpritesheetSha256 -ne $expectedSpritesheetSha256) { Stop-With 3 'Invalid source: spritesheet.webp does not match the approved v2 atlas.' }
 
 $codexHome = Resolve-CodexHome $homeInput $true
 $pets = Resolve-PetsDirectory $codexHome $true

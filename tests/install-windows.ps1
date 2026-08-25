@@ -12,7 +12,7 @@ try {
     $env:CODEX_HOME = $fallbackHome
     $manifestPath = Join-Path $fixture 'pet\ellen-joe-pixel\pet.json'
     $sheetPath = Join-Path $fixture 'pet\ellen-joe-pixel\spritesheet.webp'
-    $validManifest = '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
+    $validManifest = '{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
     $validManifest | Set-Content -LiteralPath $manifestPath -Encoding UTF8
     [IO.File]::WriteAllBytes($sheetPath, [byte[]](1, 2, 3))
 
@@ -73,10 +73,24 @@ try {
     Assert-Sentinel $codexHome
     $validManifest | Set-Content -LiteralPath $manifestPath -Encoding UTF8
 
+    Assert-Code 3 'install.ps1' @('-CodexHome', $codexHome)
+    Assert-Sentinel $codexHome
+    if (Test-Path -LiteralPath (Join-Path $codexHome 'pets\ellen-joe-pixel')) { throw 'invalid atlas was installed' }
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\pet\ellen-joe-pixel\spritesheet.webp') -Destination $sheetPath
+
     $linkedHome = Join-Path $tempRoot 'linked home'
     $outside = Join-Path $tempRoot 'outside'
     New-TestHome $outside
     New-Item -ItemType Directory -Path $linkedHome | Out-Null
+
+    $linkedCodexHome = Join-Path $tempRoot 'linked codex home'
+    New-Item -ItemType Junction -Path $linkedCodexHome -Target $outside | Out-Null
+    Assert-Code 3 'install.ps1' @('-CodexHome', $linkedCodexHome)
+    Assert-Sentinel $outside
+    if (Test-Path -LiteralPath (Join-Path $outside 'pets\ellen-joe-pixel')) { throw 'symlinked Codex home escaped selected home' }
+    Assert-Code 3 'uninstall.ps1' @('-CodexHome', $linkedCodexHome)
+    Assert-Sentinel $outside
+
     New-Item -ItemType Junction -Path (Join-Path $linkedHome 'pets') -Target (Join-Path $outside 'pets') | Out-Null
     Assert-Code 3 'install.ps1' @('-CodexHome', $linkedHome)
     Assert-Sentinel $outside

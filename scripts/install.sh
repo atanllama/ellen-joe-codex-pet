@@ -35,6 +35,7 @@ is_link_or_reparse() {
 }
 canonical_home() {
     [ -n "$1" ] || fail 3 'Invalid Codex home.'
+    is_link_or_reparse "$1" && fail 3 'Refusing a symbolic-link or reparse-point Codex home.'
     if [ -d "$1" ]; then
         result=$(CDPATH= cd -P "$1" && pwd -P) || fail 3 'Cannot resolve Codex home.'
     elif [ -e "$1" ]; then
@@ -105,10 +106,10 @@ script_dir=$(CDPATH= cd -P "$(dirname "$0")" && pwd) || fail 3 'Cannot resolve s
 repo_root=$(CDPATH= cd -P "$script_dir/.." && pwd) || fail 3 'Cannot resolve repository root.'
 source_dir="$repo_root/pet/ellen-joe-pixel"
 [ -f "$source_dir/pet.json" ] && [ -f "$source_dir/spritesheet.webp" ] || fail 3 'Invalid source: package files are missing.'
-# Python 3 is a declared runtime dependency for this Python package. Prefer the
-# usual python3 command and accept python only when it identifies as Python 3.
-# If neither is available, validation fails explicitly rather than falling back
-# to a best-effort or substring-based parser.
+# Python 3 is used only for strict JSON manifest validation. Prefer the usual
+# python3 command and accept python only when it identifies as Python 3. The
+# approved WebP hash below carries the already-validated v2 pixel contract
+# without adding a Pillow runtime dependency to release installs.
 if command -v python3 >/dev/null 2>&1 && python3 -c 'import sys; raise SystemExit(sys.version_info[0] != 3)' >/dev/null 2>&1; then
     python_cmd=python3
 elif command -v python >/dev/null 2>&1 && python -c 'import sys; raise SystemExit(sys.version_info[0] != 3)' >/dev/null 2>&1; then
@@ -169,6 +170,10 @@ try:
         raise ValueError("duplicate required top-level key")
     if manifest.get("id") != "ellen-joe-pixel":
         raise ValueError("invalid id")
+    if manifest.get("displayName") != "Ellen Joe Pixel":
+        raise ValueError("invalid display name")
+    if not isinstance(manifest.get("description"), str) or not manifest["description"].strip():
+        raise ValueError("invalid description")
     if type(manifest.get("spriteVersionNumber")) is not int or manifest["spriteVersionNumber"] != 2:
         raise ValueError("invalid sprite version")
     if manifest.get("spritesheetPath") != "spritesheet.webp":
@@ -178,6 +183,16 @@ except (OSError, ValueError, json.JSONDecodeError, TypeError) as error:
     sys.exit(1)
 PY
 [ "$?" -eq 0 ] || fail 3 'Invalid source: manifest contract mismatch.'
+
+expected_spritesheet_sha256=C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6
+if command -v sha256sum >/dev/null 2>&1; then
+    actual_spritesheet_sha256=$(sha256sum "$source_dir/spritesheet.webp" | awk '{print $1}') || fail 3 'Invalid source: cannot hash spritesheet.webp.'
+elif command -v shasum >/dev/null 2>&1; then
+    actual_spritesheet_sha256=$(shasum -a 256 "$source_dir/spritesheet.webp" | awk '{print $1}') || fail 3 'Invalid source: cannot hash spritesheet.webp.'
+else
+    fail 3 'Invalid source: sha256sum or shasum is required to verify spritesheet.webp.'
+fi
+[ "$(printf '%s' "$actual_spritesheet_sha256" | tr '[:lower:]' '[:upper:]')" = "$expected_spritesheet_sha256" ] || fail 3 'Invalid source: spritesheet.webp does not match the approved v2 atlas.'
 
 codex_home=$(canonical_home "$codex_home") || exit $?
 pets_candidate="$codex_home/pets"

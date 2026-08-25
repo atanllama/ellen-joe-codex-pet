@@ -96,6 +96,9 @@ The POSIX default resolution is:
 The exact destination is `<CodexHome>/pets/ellen-joe-pixel`. The POSIX script
 uses Python 3 to validate the source manifest before staging it. It refuses
 symbolic-link or reparse-point paths that could escape the selected Codex home.
+Both installers also verify the complete manifest and the approved v2 WebP
+SHA-256 before touching the target; that pinned atlas hash carries the validated
+dimensions, transparency, and used-cell layout without requiring Pillow.
 
 ## Verify the package
 

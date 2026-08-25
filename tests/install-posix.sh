@@ -10,7 +10,7 @@ cp "$test_dir/../scripts/install.sh" "$test_dir/../scripts/uninstall.sh" "$fixtu
 manifest="$fixture/pet/ellen-joe-pixel/pet.json"
 sheet="$fixture/pet/ellen-joe-pixel/spritesheet.webp"
 canonical_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'
-valid_manifest='{ "metadata": { "id": "nested first", "id": "nested last", "spriteVersionNumber": 20, "spritesheetPath": "other.webp" }, "extra": true, "spritesheetPath" : "spritesheet.webp", "spriteVersionNumber" : 2, "id" : "ellen-joe-pixel" }'
+valid_manifest='{ "metadata": { "id": "nested first", "id": "nested last", "spriteVersionNumber": 20, "spritesheetPath": "other.webp" }, "extra": true, "displayName": "Ellen Joe Pixel", "description": "A sleepy full-body Ellen Joe fan-art Codex Pet.", "spritesheetPath" : "spritesheet.webp", "spriteVersionNumber" : 2, "id" : "ellen-joe-pixel" }'
 printf '%s\r\n' "$valid_manifest" > "$manifest"
 printf '\001\002\003' > "$sheet"
 
@@ -94,6 +94,10 @@ sed -e 's/command -v python3/command -v python3-not-installed/g' -e 's/command -
 assert_code 3 sh "$fixture/scripts/install-no-python.sh" --codex-home "$home"
 assert_sentinel "$home"
 printf '%s\r\n' "$valid_manifest" > "$manifest"
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$home"
+assert_sentinel "$home"
+[ ! -e "$home/pets/ellen-joe-pixel" ] || fail_test 'invalid atlas was installed'
+cp "$test_dir/../pet/ellen-joe-pixel/spritesheet.webp" "$sheet"
 
 root_alias=/tmp/..
 assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$root_alias"
@@ -145,6 +149,21 @@ linked_home="$temp_root/linked home"
 outside="$temp_root/outside"
 new_test_home "$outside"
 mkdir -p "$linked_home"
+
+linked_codex_home="$temp_root/linked codex home"
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+        command -v pwsh >/dev/null 2>&1 || fail_test 'pwsh is required to create the Windows Junction fixture'
+        LINKED_HOME="$linked_codex_home" OUTSIDE_HOME="$outside" pwsh -NoProfile -Command 'New-Item -ItemType Junction -Path $env:LINKED_HOME -Target $env:OUTSIDE_HOME | Out-Null'
+        ;;
+    *) ln -s "$outside" "$linked_codex_home" ;;
+esac
+assert_code 3 sh "$fixture/scripts/install.sh" --codex-home "$linked_codex_home"
+assert_sentinel "$outside"
+[ ! -e "$outside/pets/ellen-joe-pixel" ] || fail_test 'symlinked Codex home escaped selected home'
+assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$linked_codex_home"
+assert_sentinel "$outside"
+
 case "$(uname -s)" in
     MINGW*|MSYS*|CYGWIN*)
         command -v pwsh >/dev/null 2>&1 || fail_test 'pwsh is required to create the Windows Junction fixture'
