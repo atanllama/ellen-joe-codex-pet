@@ -36,14 +36,38 @@ assert_no_stages() {
         [ ! -e "$candidate" ] || fail_test "staging directory leaked: $candidate"
     done
 }
+assert_no_install_locks() {
+    lock_path="$1/pets/.ellen-joe-pixel.install.lock"
+    [ ! -e "$lock_path" ] || fail_test "install lock leaked: $lock_path"
+    [ ! -L "$lock_path" ] || fail_test "dangling install lock leaked: $lock_path"
+    if command -v cmd.exe >/dev/null 2>&1 && command -v cygpath >/dev/null 2>&1; then
+        lock_query=$(cmd.exe /c fsutil reparsepoint query "$(cygpath -w "$lock_path")" 2>&1 || :)
+        if printf '%s\n' "$lock_query" | grep -q 'Reparse Tag Value'; then
+            fail_test "reparse install lock leaked: $lock_path"
+        fi
+    fi
+}
+assert_installed_bytes() {
+    expected_hash=C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual_hash=$(sha256sum "$1/pets/ellen-joe-pixel/spritesheet.webp" | awk '{print toupper($1)}')
+    else
+        actual_hash=$(shasum -a 256 "$1/pets/ellen-joe-pixel/spritesheet.webp" | awk '{print toupper($1)}')
+    fi
+    [ "$actual_hash" = "$expected_hash" ] || fail_test 'installed spritesheet bytes changed'
+    cmp -s "$manifest" "$1/pets/ellen-joe-pixel/pet.json" || fail_test 'installed manifest bytes changed'
+}
 single_backup() {
     backup=
-    for candidate in "$1/pets"/ellen-joe-pixel.backup.*; do
+    for candidate in "$1/pet-backups"/ellen-joe-pixel.backup.*; do
         [ -d "$candidate" ] || continue
         [ -z "$backup" ] || fail_test "multiple backups under $1"
         backup=$candidate
     done
     [ -n "$backup" ] || fail_test "backup missing under $1"
+    for candidate in "$1/pets"/ellen-joe-pixel.backup.*; do
+        [ ! -e "$candidate" ] || fail_test "backup leaked into pets: $candidate"
+    done
     printf '%s\n' "$backup"
 }
 
@@ -187,6 +211,25 @@ assert_sentinel "$file_home"
 assert_code 3 sh "$fixture/scripts/uninstall.sh" --codex-home "$file_home"
 assert_sentinel "$file_home"
 
+locked_home="$temp_root/locked home"
+new_test_home "$locked_home"
+lock_path="$locked_home/pets/.ellen-joe-pixel.install.lock"
+mkdir "$lock_path"
+assert_code 4 sh "$fixture/scripts/install.sh" --codex-home "$locked_home"
+assert_sentinel "$locked_home"
+test -d "$lock_path"
+rmdir "$lock_path"
+sh "$fixture/scripts/install.sh" --codex-home "$locked_home"
+assert_sentinel "$locked_home"
+assert_no_install_locks "$locked_home"
+mkdir "$lock_path"
+assert_code 4 sh "$fixture/scripts/uninstall.sh" --codex-home "$locked_home"
+test -d "$locked_home/pets/ellen-joe-pixel"
+test -d "$lock_path"
+rmdir "$lock_path"
+assert_code 0 sh "$fixture/scripts/uninstall.sh" --codex-home "$locked_home"
+assert_no_install_locks "$locked_home"
+
 sh "$fixture/scripts/install.sh" --codex-home "$home"
 assert_sentinel "$home"
 test -f "$home/pets/ellen-joe-pixel/pet.json"
@@ -196,11 +239,33 @@ assert_sentinel "$home"
 printf '%s\n' old > "$home/pets/ellen-joe-pixel/marker.txt"
 sh "$fixture/scripts/install.sh" --codex-home "$home" --force
 assert_sentinel "$home"
+test -f "$home/pets/ellen-joe-pixel/pet.json"
+test -f "$home/pets/ellen-joe-pixel/spritesheet.webp"
+assert_installed_bytes "$home"
 backup=$(single_backup "$home")
 test -f "$backup/marker.txt"
+printf '%s\n' new > "$home/pets/ellen-joe-pixel/marker.txt"
+sh "$fixture/scripts/install.sh" --codex-home "$home" --force
+assert_sentinel "$home"
+assert_no_install_locks "$home"
+backup_count=0
+saw_old=0
+saw_new=0
+for candidate in "$home/pet-backups"/ellen-joe-pixel.backup.*; do
+    [ -d "$candidate" ] || continue
+    backup_count=$((backup_count + 1))
+    case "$(cat "$candidate/marker.txt")" in
+        old) saw_old=1 ;;
+        new) saw_new=1 ;;
+    esac
+done
+[ "$backup_count" -eq 2 ] || fail_test 'backup names were not unique'
+[ "$saw_old" -eq 1 ] && [ "$saw_new" -eq 1 ] || fail_test 'unique backups did not preserve both prior targets'
+assert_installed_bytes "$home"
 sh "$fixture/scripts/uninstall.sh" --codex-home "$home"
 assert_sentinel "$home"
 test ! -e "$home/pets/ellen-joe-pixel"
+test -f "$backup/marker.txt"
 assert_code 2 sh "$fixture/scripts/uninstall.sh" --codex-home "$home"
 assert_sentinel "$home"
 
@@ -209,30 +274,77 @@ new_test_home "$rollback_home"
 # Match the installer's physical path when macOS TMPDIR is symlinked.
 rollback_home=$(CDPATH= cd -P "$rollback_home" && pwd -P)
 rollback_pets="$rollback_home/pets"
+rollback_backup_dir="$rollback_home/pet-backups"
 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home"
 assert_sentinel "$rollback_home"
 printf '%s\n' 'prior target' > "$rollback_pets/ellen-joe-pixel/marker.txt"
-real_mv=$(command -v mv)
-mkdir -p "$fixture/bin"
-cat > "$fixture/bin/mv" <<EOF
-#!/bin/sh
-if [ "\${ELLEN_TEST_FAIL_FINAL_MOVE-}" = 1 ]; then
-    case "\$1" in "$rollback_pets"/.ellen-joe-pixel.stage.*) exit 1 ;; esac
-fi
-if [ "\${ELLEN_TEST_FAIL_ROLLBACK-}" = 1 ]; then
-    case "\$1" in "$rollback_pets"/ellen-joe-pixel.backup.*) exit 1 ;; esac
-fi
-exec "\$ELLEN_REAL_MV" "\$@"
-EOF
-chmod +x "$fixture/bin/mv"
-assert_code 4 env PATH="$fixture/bin:$PATH" ELLEN_REAL_MV="$real_mv" ELLEN_TEST_FAIL_FINAL_MOVE=1 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home" --force
+rollback_installer="$fixture/scripts/install-rollback.sh"
+sed '/^rename_directory() {/a\
+    if [ "${ELLEN_TEST_FAIL_FINAL_MOVE-}" = 1 ]; then\
+        case "$1" in */.ellen-joe-pixel.stage.*) return 1 ;; esac\
+    fi\
+    if [ "${ELLEN_TEST_FAIL_ROLLBACK-}" = 1 ]; then\
+        case "$1" in */pet-backups/ellen-joe-pixel.backup.*) return 1 ;; esac\
+    fi' "$fixture/scripts/install.sh" > "$rollback_installer"
+chmod +x "$rollback_installer"
+assert_code 4 env ELLEN_TEST_FAIL_FINAL_MOVE=1 sh "$rollback_installer" --codex-home "$rollback_home" --force
 assert_sentinel "$rollback_home"
 test -f "$rollback_pets/ellen-joe-pixel/marker.txt"
 assert_no_stages "$rollback_home"
-assert_code 5 env PATH="$fixture/bin:$PATH" ELLEN_REAL_MV="$real_mv" ELLEN_TEST_FAIL_FINAL_MOVE=1 ELLEN_TEST_FAIL_ROLLBACK=1 sh "$fixture/scripts/install.sh" --codex-home "$rollback_home" --force
+assert_no_install_locks "$rollback_home"
+assert_code 5 env ELLEN_TEST_FAIL_FINAL_MOVE=1 ELLEN_TEST_FAIL_ROLLBACK=1 sh "$rollback_installer" --codex-home "$rollback_home" --force
 assert_sentinel "$rollback_home"
 test ! -e "$rollback_pets/ellen-joe-pixel"
 backup=$(single_backup "$rollback_home")
 test -f "$backup/marker.txt"
 assert_no_stages "$rollback_home"
+assert_no_install_locks "$rollback_home"
+
+appeared_installer="$fixture/scripts/install-appeared.sh"
+sed '/^if ! rename_directory /i\
+if [ "${ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE-}" = 1 ]; then\
+    mkdir "$target"\
+    printf "%s\\n" appeared > "$target/marker.txt"\
+fi' "$fixture/scripts/install.sh" > "$appeared_installer"
+chmod +x "$appeared_installer"
+appeared_home="$temp_root/appeared target home"
+new_test_home "$appeared_home"
+assert_code 4 env ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE=1 sh "$appeared_installer" --codex-home "$appeared_home"
+test -f "$appeared_home/pets/ellen-joe-pixel/marker.txt"
+test ! -e "$appeared_home/pets/ellen-joe-pixel/pet.json"
+for candidate in "$appeared_home/pet-backups"/ellen-joe-pixel.backup.*; do
+    [ ! -e "$candidate" ] || fail_test 'target appearance created an unexpected backup'
+done
+assert_no_install_locks "$appeared_home"
+assert_no_stages "$appeared_home"
+
+cleanup_failure_installer="$fixture/scripts/install-cleanup-failure.sh"
+sed '/^acquire_install_lock$/a\
+mkdir "$install_lock/held"\
+fail 3 "Injected cleanup failure."' "$fixture/scripts/install.sh" > "$cleanup_failure_installer"
+chmod +x "$cleanup_failure_installer"
+cleanup_failure_home="$temp_root/cleanup failure home"
+new_test_home "$cleanup_failure_home"
+cleanup_failure_lock="$cleanup_failure_home/pets/.ellen-joe-pixel.install.lock"
+assert_code 5 sh "$cleanup_failure_installer" --codex-home "$cleanup_failure_home"
+test -d "$cleanup_failure_lock/held"
+test ! -e "$cleanup_failure_home/pets/ellen-joe-pixel"
+assert_sentinel "$cleanup_failure_home"
+rm -rf "$cleanup_failure_lock"
+assert_no_install_locks "$cleanup_failure_home"
+assert_no_stages "$cleanup_failure_home"
+
+cleanup_failure_uninstaller="$fixture/scripts/uninstall-cleanup-failure.sh"
+sed '/^acquire_uninstall_lock$/a\
+mkdir "$install_lock/held"\
+fail 3 "Injected uninstall cleanup failure."' "$fixture/scripts/uninstall.sh" > "$cleanup_failure_uninstaller"
+chmod +x "$cleanup_failure_uninstaller"
+uninstall_cleanup_home="$temp_root/uninstall cleanup failure home"
+new_test_home "$uninstall_cleanup_home"
+uninstall_cleanup_lock="$uninstall_cleanup_home/pets/.ellen-joe-pixel.install.lock"
+assert_code 5 sh "$cleanup_failure_uninstaller" --codex-home "$uninstall_cleanup_home"
+test -d "$uninstall_cleanup_lock/held"
+assert_sentinel "$uninstall_cleanup_home"
+rm -rf "$uninstall_cleanup_lock"
+assert_no_install_locks "$uninstall_cleanup_home"
 printf '%s\n' 'OK: POSIX installer isolation and safety contract'

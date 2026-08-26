@@ -42,6 +42,39 @@ canonical_existing_home() {
     is_filesystem_root "$result" && fail 3 'Codex home cannot be a filesystem root.'
     printf '%s\n' "$result"
 }
+cleanup_uninstall_lock() {
+    [ "${lock_held:-0}" -eq 1 ] || return 0
+    if rmdir "$install_lock"; then
+        lock_held=0
+        return 0
+    fi
+    return 1
+}
+cleanup_uninstall_on_exit() {
+    exit_code=$?
+    trap '' HUP INT TERM
+    trap - EXIT
+    if cleanup_uninstall_lock; then
+        exit "$exit_code"
+    fi
+    exit 5
+}
+cleanup_uninstall_on_signal() {
+    trap '' HUP INT TERM
+    cleanup_uninstall_lock || :
+    trap - EXIT HUP INT TERM
+    exit 5
+}
+acquire_uninstall_lock() {
+    trap '' HUP INT TERM
+    if mkdir "$install_lock" 2>/dev/null; then
+        lock_held=1
+        trap 'cleanup_uninstall_on_signal' HUP INT TERM
+        return 0
+    fi
+    trap 'cleanup_uninstall_on_signal' HUP INT TERM
+    fail 4 "Cannot acquire install lock: $install_lock"
+}
 
 if [ -n "${CODEX_HOME-}" ]; then
     codex_home=$CODEX_HOME
@@ -75,10 +108,20 @@ fi
 pets_dir=$(CDPATH= cd -P "$pets_candidate" && pwd -P) || fail 3 'Cannot resolve pets directory.'
 [ "$pets_dir" = "$pets_candidate" ] || fail 3 'Pets directory escapes Codex home.'
 target="$pets_dir/ellen-joe-pixel"
+install_lock="$pets_dir/.ellen-joe-pixel.install.lock"
+lock_held=0
+trap 'cleanup_uninstall_on_exit' EXIT
+trap 'cleanup_uninstall_on_signal' HUP INT TERM
+acquire_uninstall_lock
 [ "$(basename "$target")" = 'ellen-joe-pixel' ] || fail 3 'Target verification failed.'
 is_link_or_reparse "$target" && fail 3 'Refusing a symbolic-link target.'
 [ -e "$target" ] || fail 2 "Target is not installed: $target"
 [ -d "$target" ] || fail 3 'Refusing a non-directory target.'
 rm -rf "$target" || fail 5 'Uninstall failed.'
+if ! cleanup_uninstall_lock; then
+    trap - EXIT HUP INT TERM
+    fail 5 'Uninstall succeeded but install-lock cleanup failed.'
+fi
+trap - EXIT HUP INT TERM
 printf 'Uninstalled: %s\n' "$target"
 exit 0

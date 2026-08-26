@@ -62,10 +62,12 @@ pwsh -NoProfile -File .\scripts\install.ps1 `
 ```
 
 The installer stages the two package files first, moves the old target to a
-timestamped sibling such as
-`ellen-joe-pixel.backup.20260825T120000Z.1234`, and then installs the staged
-target. A successful forced replacement reports the backup path. Backups and
-neighboring pets are not removed by uninstall.
+uniquely named directory under `<CodexHome>\pet-backups` such as
+`pet-backups\ellen-joe-pixel.backup.<random-id>`, and then installs the staged
+target. A successful forced replacement reports the backup path.
+Keeping backups outside `<CodexHome>\pets` prevents Codex from discovering a
+backup as another pet. Backups and neighboring pets are not removed by
+uninstall.
 
 ## Install on macOS or Linux
 
@@ -93,12 +95,21 @@ The POSIX default resolution is:
 2. the `CODEX_HOME` environment variable;
 3. `$HOME/.codex`.
 
-The exact destination is `<CodexHome>/pets/ellen-joe-pixel`. The POSIX script
-uses Python 3 to validate the source manifest before staging it. It refuses
-symbolic-link or reparse-point paths that could escape the selected Codex home.
-Both installers also verify the complete manifest and the approved v2 WebP
-SHA-256 before touching the target; that pinned atlas hash carries the validated
-dimensions, transparency, and used-cell layout without requiring Pillow.
+The exact destination is `<CodexHome>/pets/ellen-joe-pixel`. Forced replacements
+keep uniquely named backups under `<CodexHome>/pet-backups`, outside the pet
+discovery directory. The POSIX script uses Python 3 to validate the source
+manifest before staging it. It refuses symbolic-link or reparse-point paths
+that could escape the selected Codex home. Both installers also verify the
+complete manifest and the approved v2 WebP SHA-256 before touching the target;
+that pinned atlas hash carries the validated dimensions, transparency, and
+used-cell layout without requiring Pillow.
+
+Both installers and uninstallers coordinate through
+`<CodexHome>/pets/.ellen-joe-pixel.install.lock`. If a process was terminated
+before it could clean up the lock, first verify that no install or uninstall is
+running, then remove that exact stale lock before retrying. Never remove it
+while an operation is active; the lock coordinates these scripts but does not
+protect against unrelated filesystem writers.
 
 ## Verify the package
 
@@ -166,9 +177,9 @@ sh ./scripts/uninstall.sh --codex-home "$HOME/.codex-private"
 
 If no home option is provided, each uninstaller resolves `CODEX_HOME` and then
 its platform default in the same way as the installer. Uninstall removes only
-`<CodexHome>/pets/ellen-joe-pixel`; it does not remove timestamped backups,
-`pets/sentinel`, or any other neighboring pet. Running uninstall when the
-exact target is absent returns exit code `2`.
+`<CodexHome>/pets/ellen-joe-pixel`; it does not remove backups under
+`<CodexHome>/pet-backups`, `pets/sentinel`, or any other neighboring pet.
+Running uninstall when the exact target is absent returns exit code `2`.
 
 ## Exit-code reference
 

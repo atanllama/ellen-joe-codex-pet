@@ -234,7 +234,8 @@ Install destination:
 Installers validate `pet.json` and `spritesheet.webp` before touching the target.
 They stage both files in a temporary sibling directory and rename atomically.
 An existing target causes a safe failure by default. Explicit `-Force` or
-`--force` creates a timestamped sibling backup before replacement.
+`--force` creates a uniquely named backup under `<CodexHome>/pet-backups`, outside
+the pet discovery directory, before replacement.
 
 Uninstallers resolve and verify the exact pet directory before removal and never
 modify other pets or global Codex configuration. Backups are preserved. Repeated

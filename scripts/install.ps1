@@ -29,6 +29,44 @@ function Resolve-PetsDirectory([string]$CodexHome, [bool]$Create) {
     if (-not [StringComparer]::OrdinalIgnoreCase.Equals($resolvedPets, $candidate)) { Stop-With 3 'Pets directory escapes Codex home.' }
     return $resolvedPets
 }
+function Resolve-BackupDirectory([string]$CodexHome, [bool]$Create) {
+    $candidate = Join-Path $CodexHome 'pet-backups'
+    $item = $null
+    try {
+        $item = Get-Item -LiteralPath $candidate -Force -ErrorAction Stop
+    } catch {
+        if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { Stop-With 4 ("Cannot inspect pet-backups directory: " + $_.Exception.Message) }
+    }
+    if ($null -ne $item) {
+        if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point pet-backups directory.' }
+    } elseif (-not $Create) {
+        Stop-With 2 'Pet backup directory is not available.'
+    } else {
+        try { New-Item -ItemType Directory -Path $candidate -ErrorAction Stop | Out-Null } catch { Stop-With 4 ("Cannot create pet-backups directory: " + $_.Exception.Message) }
+        try { $item = Get-Item -LiteralPath $candidate -Force -ErrorAction Stop } catch { Stop-With 4 ("Cannot inspect created pet-backups directory: " + $_.Exception.Message) }
+        if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point pet-backups directory.' }
+    }
+    try { $resolvedBackup = (Resolve-Path -LiteralPath $candidate -ErrorAction Stop).Path } catch { Stop-With 4 ("Cannot resolve pet-backups directory: " + $_.Exception.Message) }
+    if (-not [StringComparer]::OrdinalIgnoreCase.Equals($resolvedBackup, $candidate)) { Stop-With 3 'Pet-backups directory escapes Codex home.' }
+    return $resolvedBackup
+}
+function Move-VerifiedDirectory([string]$Source, [string]$Destination) {
+    $sourceItem = Get-Item -LiteralPath $Source -Force -ErrorAction Stop
+    if (-not $sourceItem.PSIsContainer -or ($sourceItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Source is not a real directory.' }
+    $parentPath = [IO.Path]::GetDirectoryName($Destination)
+    $parentItem = Get-Item -LiteralPath $parentPath -Force -ErrorAction Stop
+    if (-not $parentItem.PSIsContainer -or ($parentItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Destination parent is not a real directory.' }
+    $destinationItem = Get-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue
+    if ($null -ne $destinationItem) { throw 'Destination already exists.' }
+    [IO.Directory]::Move($Source, $Destination)
+}
+function New-BackupPath([string]$BackupDirectory) {
+    for ($attempt = 0; $attempt -lt 16; $attempt++) {
+        $candidate = Join-Path $BackupDirectory ('ellen-joe-pixel.backup.' + [guid]::NewGuid().ToString('N'))
+        if ($null -eq (Get-Item -LiteralPath $candidate -Force -ErrorAction SilentlyContinue)) { return $candidate }
+    }
+    throw 'Cannot allocate a unique backup path.'
+}
 function Remove-VerifiedStage([string]$Stage, [string]$Pets) {
     if (-not (Test-Path -LiteralPath $Stage)) { return $true }
     if ([IO.Path]::GetDirectoryName($Stage) -ne $Pets -or [IO.Path]::GetFileName($Stage) -notlike '.ellen-joe-pixel.stage.*') { return $false }
@@ -81,34 +119,74 @@ if ($actualSpritesheetSha256 -ne $expectedSpritesheetSha256) { Stop-With 3 'Inva
 $codexHome = Resolve-CodexHome $homeInput $true
 $pets = Resolve-PetsDirectory $codexHome $true
 $target = Join-Path $pets 'ellen-joe-pixel'
-if (Test-Path -LiteralPath $target) {
-    $targetItem = Get-Item -LiteralPath $target -Force
-    if (-not $targetItem.PSIsContainer -or ($targetItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
-    if (-not $force) { Stop-With 2 "Target already exists: $target" }
-}
-
-$stage = Join-Path $pets ('.ellen-joe-pixel.stage.' + [guid]::NewGuid().ToString('N'))
+$lockPath = Join-Path $pets '.ellen-joe-pixel.install.lock'
+$lockStream = $null
+$lockHeld = $false
+$backupDir = $null
+$stage = $null
 $backup = $null
+$backupCandidate = $null
 try {
-    New-Item -ItemType Directory -Path $stage | Out-Null
-    Copy-Item -LiteralPath $manifestPath, $sheetPath -Destination $stage
-    if (Test-Path -LiteralPath $target) {
-        $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
-        $backup = "$target.backup.$stamp.$PID"
-        Move-Item -LiteralPath $target -Destination $backup
+    try {
+        $lockStream = [IO.File]::Open($lockPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $lockHeld = $true
+    } catch {
+        Stop-With 4 ("Cannot acquire install lock: " + $_.Exception.Message)
     }
-    Move-Item -LiteralPath $stage -Destination $target
+
+    $targetItem = $null
+    try {
+        $targetItem = Get-Item -LiteralPath $target -Force -ErrorAction Stop
+    } catch {
+        if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { throw }
+    }
+    if ($null -ne $targetItem) {
+        if (-not $targetItem.PSIsContainer -or ($targetItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
+        if (-not $force) { Stop-With 2 "Target already exists: $target" }
+        $backupDir = Resolve-BackupDirectory $codexHome $true
+    }
+
+    $stage = Join-Path $pets ('.ellen-joe-pixel.stage.' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $stage -ErrorAction Stop | Out-Null
+    Copy-Item -LiteralPath $manifestPath, $sheetPath -Destination $stage -ErrorAction Stop
+
+    $targetItem = $null
+    try {
+        $targetItem = Get-Item -LiteralPath $target -Force -ErrorAction Stop
+    } catch {
+        if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { throw }
+    }
+    if ($null -ne $targetItem) {
+        if (-not $targetItem.PSIsContainer -or ($targetItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
+        if ($null -eq $backupDir) { $backupDir = Resolve-BackupDirectory $codexHome $true }
+        $backupCandidate = New-BackupPath $backupDir
+        Move-VerifiedDirectory $target $backupCandidate
+        $backup = $backupCandidate
+    }
+    Move-VerifiedDirectory $stage $target
 } catch {
     $failure = $_.Exception.Message
     $cleanupOk = Remove-VerifiedStage $stage $pets
     $rollbackOk = $true
     if ($backup) {
-        if ((Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $target)) {
-            try { Move-Item -LiteralPath $backup -Destination $target } catch { $rollbackOk = $false }
-        } else { $rollbackOk = $false }
+        $backupItem = $null
+        $targetItem = $null
+        try { $backupItem = Get-Item -LiteralPath $backup -Force -ErrorAction Stop } catch { if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { $rollbackOk = $false } }
+        try { $targetItem = Get-Item -LiteralPath $target -Force -ErrorAction Stop } catch { if ($_.CategoryInfo.Category -ne 'ObjectNotFound') { $rollbackOk = $false } }
+        if ($null -ne $backupItem -and $null -eq $targetItem) {
+            try { Move-VerifiedDirectory $backup $target } catch { $rollbackOk = $false }
+        } elseif ($null -ne $backupItem -or $null -ne $targetItem) { $rollbackOk = $false }
     }
     if ($cleanupOk -and $rollbackOk) { Stop-With 4 ("Install failed; prior target restored when present: $failure") }
     Stop-With 5 ("Install failed and rollback or cleanup failed: $failure")
+} finally {
+    if ($lockHeld) {
+        $lockCleanupOk = $true
+        try { $lockStream.Dispose() } catch { $lockCleanupOk = $false }
+        try { [IO.File]::Delete($lockPath) } catch { $lockCleanupOk = $false }
+        $lockHeld = $false
+        if (-not $lockCleanupOk) { Stop-With 5 'Install failed and install-lock cleanup failed.' }
+    }
 }
 Write-Host "Installed: $target"
 if ($backup) { Write-Host "Backup: $backup" }

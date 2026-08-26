@@ -3,6 +3,7 @@ $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("ellen-installer-test-" + [gui
 $priorCodexHome = [Environment]::GetEnvironmentVariable('CODEX_HOME', 'Process')
 $priorFailFinal = [Environment]::GetEnvironmentVariable('ELLEN_TEST_FAIL_FINAL_MOVE', 'Process')
 $priorFailRollback = [Environment]::GetEnvironmentVariable('ELLEN_TEST_FAIL_ROLLBACK', 'Process')
+$priorCreateTarget = [Environment]::GetEnvironmentVariable('ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE', 'Process')
 try {
     $fixture = Join-Path $tempRoot 'repo'
     $codexHome = Join-Path $tempRoot 'codex home'
@@ -36,6 +37,20 @@ try {
     }
     function Assert-NoStages([string]$Path) {
         if (@(Get-ChildItem -LiteralPath (Join-Path $Path 'pets') -Force | Where-Object Name -Like '.ellen-joe-pixel.stage.*').Count -ne 0) { throw "staging directory leaked under $Path" }
+    }
+    function Assert-NoPetBackupsInPets([string]$Path) {
+        if (@(Get-ChildItem -LiteralPath (Join-Path $Path 'pets') -Directory -ErrorAction SilentlyContinue | Where-Object Name -Like 'ellen-joe-pixel.backup.*').Count -ne 0) { throw "backup leaked into pets under $Path" }
+    }
+    function Assert-NoInstallLocks([string]$Path) {
+        $lockItem = Get-Item -LiteralPath (Join-Path $Path 'pets\.ellen-joe-pixel.install.lock') -Force -ErrorAction SilentlyContinue
+        if ($null -ne $lockItem) { throw "install lock leaked under $Path" }
+    }
+    function Assert-InstalledBytes([string]$Path, [string]$SourceManifest, [string]$SourceSheet) {
+        $expectedHash = 'C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6'
+        $installedSheet = Join-Path $Path 'pets\ellen-joe-pixel\spritesheet.webp'
+        $installedManifest = Join-Path $Path 'pets\ellen-joe-pixel\pet.json'
+        if ((Get-FileHash -Algorithm SHA256 -LiteralPath $installedSheet).Hash.ToUpperInvariant() -ne $expectedHash) { throw 'installed spritesheet bytes changed' }
+        if (-not [Linq.Enumerable]::SequenceEqual([IO.File]::ReadAllBytes($SourceManifest), [IO.File]::ReadAllBytes($installedManifest))) { throw 'installed manifest bytes changed' }
     }
 
     New-TestHome $codexHome
@@ -107,6 +122,25 @@ try {
     Assert-Code 3 'uninstall.ps1' @('-CodexHome', $fileHome)
     Assert-Sentinel $fileHome
 
+    $lockedHome = Join-Path $tempRoot 'locked home'
+    New-TestHome $lockedHome
+    $lockPath = Join-Path $lockedHome 'pets\.ellen-joe-pixel.install.lock'
+    New-Item -ItemType File -Path $lockPath -Force | Out-Null
+    Assert-Code 4 'install.ps1' @('-CodexHome', $lockedHome)
+    Assert-Sentinel $lockedHome
+    if (-not (Test-Path -LiteralPath $lockPath)) { throw 'pre-existing install lock was removed' }
+    Remove-Item -LiteralPath $lockPath -Force
+    Assert-Code 0 'install.ps1' @('-CodexHome', $lockedHome)
+    Assert-Sentinel $lockedHome
+    Assert-NoInstallLocks $lockedHome
+    New-Item -ItemType File -Path $lockPath -Force | Out-Null
+    Assert-Code 4 'uninstall.ps1' @('-CodexHome', $lockedHome)
+    if (-not (Test-Path -LiteralPath (Join-Path $lockedHome 'pets\ellen-joe-pixel'))) { throw 'locked uninstall removed target' }
+    if ($null -eq (Get-Item -LiteralPath $lockPath -Force -ErrorAction SilentlyContinue)) { throw 'locked uninstall removed pre-existing lock' }
+    Remove-Item -LiteralPath $lockPath -Force
+    Assert-Code 0 'uninstall.ps1' @('-CodexHome', $lockedHome)
+    Assert-NoInstallLocks $lockedHome
+
     Assert-Code 0 'install.ps1' @('-CodexHome', $codexHome)
     Assert-Sentinel $codexHome
     $target = Join-Path $codexHome 'pets\ellen-joe-pixel'
@@ -116,22 +150,41 @@ try {
     'old' | Set-Content -LiteralPath (Join-Path $target 'marker.txt')
     Assert-Code 0 'install.ps1' @('-CodexHome', $codexHome, '-Force')
     Assert-Sentinel $codexHome
-    $backup = @(Get-ChildItem -LiteralPath (Join-Path $codexHome 'pets') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
-    if ($backup.Count -ne 1 -or -not (Test-Path (Join-Path $backup.FullName 'marker.txt'))) { throw 'backup missing marker' }
+    Assert-NoInstallLocks $codexHome
+    Assert-NoPetBackupsInPets $codexHome
+    if (-not (Test-Path (Join-Path $target 'pet.json')) -or -not (Test-Path (Join-Path $target 'spritesheet.webp'))) { throw 'forced install nested the staged package' }
+    Assert-InstalledBytes $codexHome $manifestPath $sheetPath
+    $backups = @(Get-ChildItem -LiteralPath (Join-Path $codexHome 'pet-backups') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*' | Sort-Object Name)
+    if ($backups.Count -ne 1 -or -not (Test-Path (Join-Path $backups[0].FullName 'marker.txt'))) { throw 'backup missing marker' }
+    $firstBackup = $backups[0].FullName
+    'new' | Set-Content -LiteralPath (Join-Path $target 'marker.txt')
+    Assert-Code 0 'install.ps1' @('-CodexHome', $codexHome, '-Force')
+    Assert-Sentinel $codexHome
+    Assert-NoInstallLocks $codexHome
+    Assert-NoPetBackupsInPets $codexHome
+    $backups = @(Get-ChildItem -LiteralPath (Join-Path $codexHome 'pet-backups') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*' | Sort-Object Name)
+    if ($backups.Count -ne 2 -or $backups[0].FullName -eq $backups[1].FullName) { throw 'backup names were not unique' }
+    $backupMarkers = @($backups | ForEach-Object { (Get-Content -Raw -LiteralPath (Join-Path $_.FullName 'marker.txt')).Trim() })
+    if (-not ($backupMarkers -contains 'old') -or -not ($backupMarkers -contains 'new')) { throw 'unique backups did not preserve both prior targets' }
+    Assert-InstalledBytes $codexHome $manifestPath $sheetPath
     Assert-Code 0 'uninstall.ps1' @('-CodexHome', $codexHome)
     Assert-Sentinel $codexHome
     if (Test-Path -LiteralPath $target) { throw 'target survived uninstall' }
+    if (-not (Test-Path (Join-Path $firstBackup 'marker.txt'))) { throw 'uninstall removed backup' }
     Assert-Code 2 'uninstall.ps1' @('-CodexHome', $codexHome)
     Assert-Sentinel $codexHome
 
     $installerCopy = Join-Path $fixture 'scripts\install.ps1'
     $installerText = Get-Content -Raw -LiteralPath $installerCopy
     $installerText = $installerText.Replace(
-        '    Move-Item -LiteralPath $stage -Destination $target',
-        ('    if ($env:ELLEN_TEST_FAIL_FINAL_MOVE -eq ''1'') { throw ''Injected final move failure.'' }' + [Environment]::NewLine + '    Move-Item -LiteralPath $stage -Destination $target'))
+        '    Move-VerifiedDirectory $stage $target',
+        ('    if ($env:ELLEN_TEST_FAIL_FINAL_MOVE -eq ''1'') { throw ''Injected final move failure.'' }' + [Environment]::NewLine + '    Move-VerifiedDirectory $stage $target'))
     $installerText = $installerText.Replace(
-        '            try { Move-Item -LiteralPath $backup -Destination $target } catch { $rollbackOk = $false }',
-        ('            try { if ($env:ELLEN_TEST_FAIL_ROLLBACK -eq ''1'') { throw ''Injected rollback failure.'' }; Move-Item -LiteralPath $backup -Destination $target } catch { $rollbackOk = $false }'))
+        '            try { Move-VerifiedDirectory $backup $target } catch { $rollbackOk = $false }',
+        ('            try { if ($env:ELLEN_TEST_FAIL_ROLLBACK -eq ''1'') { throw ''Injected rollback failure.'' }; Move-VerifiedDirectory $backup $target } catch { $rollbackOk = $false }'))
+    $installerText = $installerText.Replace(
+        '    Move-VerifiedDirectory $stage $target',
+        ('    if ($env:ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE -eq ''1'') { New-Item -ItemType Directory -Path $target | Out-Null; ''appeared'' | Set-Content -LiteralPath (Join-Path $target ''marker.txt'') }' + [Environment]::NewLine + '    Move-VerifiedDirectory $stage $target'))
     Set-Content -LiteralPath $installerCopy -Value $installerText -Encoding UTF8
 
     $rollbackHome = Join-Path $tempRoot 'rollback home'
@@ -145,6 +198,7 @@ try {
     Assert-Sentinel $rollbackHome
     Remove-Item Env:ELLEN_TEST_FAIL_FINAL_MOVE
     if (-not (Test-Path (Join-Path $rollbackTarget 'marker.txt'))) { throw 'rollback did not restore prior target' }
+    Assert-NoInstallLocks $rollbackHome
     Assert-NoStages $rollbackHome
     $env:ELLEN_TEST_FAIL_FINAL_MOVE = '1'
     $env:ELLEN_TEST_FAIL_ROLLBACK = '1'
@@ -153,12 +207,27 @@ try {
     Remove-Item Env:ELLEN_TEST_FAIL_FINAL_MOVE
     Remove-Item Env:ELLEN_TEST_FAIL_ROLLBACK
     if (Test-Path -LiteralPath $rollbackTarget) { throw 'rollback-failure target unexpectedly exists' }
-    $rollbackBackup = @(Get-ChildItem -LiteralPath (Join-Path $rollbackHome 'pets') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
+    Assert-NoPetBackupsInPets $rollbackHome
+    Assert-NoInstallLocks $rollbackHome
+    $rollbackBackup = @(Get-ChildItem -LiteralPath (Join-Path $rollbackHome 'pet-backups') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
     if ($rollbackBackup.Count -ne 1 -or -not (Test-Path (Join-Path $rollbackBackup.FullName 'marker.txt'))) { throw 'rollback-failure backup missing prior target' }
     Assert-NoStages $rollbackHome
+
+    $appearedHome = Join-Path $tempRoot 'appeared target home'
+    New-TestHome $appearedHome
+    $env:ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE = '1'
+    Assert-Code 4 'install.ps1' @('-CodexHome', $appearedHome)
+    Remove-Item Env:ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE
+    $appearedTarget = Join-Path $appearedHome 'pets\ellen-joe-pixel'
+    if (-not (Test-Path (Join-Path $appearedTarget 'marker.txt'))) { throw 'target appearance was not preserved' }
+    if (Test-Path (Join-Path $appearedTarget 'pet.json')) { throw 'target appearance regression nested the staged package' }
+    $appearedBackups = @(Get-ChildItem -LiteralPath (Join-Path $appearedHome 'pet-backups') -Directory -ErrorAction SilentlyContinue | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
+    if ($appearedBackups.Count -ne 0) { throw 'target appearance created an unexpected backup' }
+    Assert-NoInstallLocks $appearedHome
+    Assert-NoPetBackupsInPets $appearedHome
     Write-Host 'OK: Windows installer isolation and safety contract'
 } finally {
-    foreach ($entry in @(@('CODEX_HOME', $priorCodexHome), @('ELLEN_TEST_FAIL_FINAL_MOVE', $priorFailFinal), @('ELLEN_TEST_FAIL_ROLLBACK', $priorFailRollback))) {
+    foreach ($entry in @(@('CODEX_HOME', $priorCodexHome), @('ELLEN_TEST_FAIL_FINAL_MOVE', $priorFailFinal), @('ELLEN_TEST_FAIL_ROLLBACK', $priorFailRollback), @('ELLEN_TEST_CREATE_TARGET_BEFORE_FINAL_MOVE', $priorCreateTarget))) {
         if ($null -eq $entry[1]) { Remove-Item ("Env:" + $entry[0]) -ErrorAction SilentlyContinue } else { Set-Item ("Env:" + $entry[0]) $entry[1] }
     }
     if (Test-Path -LiteralPath $tempRoot) { Remove-Item -LiteralPath $tempRoot -Recurse -Force }

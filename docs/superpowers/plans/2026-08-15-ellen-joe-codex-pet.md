@@ -437,7 +437,7 @@ git commit -m "feat: add versioned release packaging"
 - Optional destination override: PowerShell `-CodexHome PATH`; POSIX `--codex-home PATH`.
 - Force replacement: PowerShell `-Force`; POSIX `--force`.
 - Exit codes: `0` success, `2` target exists or is absent for uninstall, `3` invalid source/arguments, `4` install failed but rollback succeeded, `5` unrecoverable operation or rollback failure.
-- Produces: exact target `<CodexHome>/pets/ellen-joe-pixel` and optional timestamped sibling backup.
+- Produces: exact target `<CodexHome>/pets/ellen-joe-pixel` and optional uniquely named backup under `<CodexHome>/pet-backups`.
 
 - [ ] **Step 1: Write failing installer integration tests**
 
@@ -447,7 +447,7 @@ Both platform tests must create an isolated Codex home containing
 1. Install and assert both Ellen files exist.
 2. Install again and assert exit code `2`.
 3. Place a marker in the installed Ellen directory, force install, and assert a
-   sibling `ellen-joe-pixel.backup.*` retains the marker.
+   backup under `<CodexHome>/pet-backups/ellen-joe-pixel.backup.*` retains the marker.
 4. Uninstall and assert the Ellen target is absent.
 5. Uninstall again and assert exit code `2`.
 6. Assert the sentinel directory and file are unchanged after every operation.
@@ -478,7 +478,7 @@ try {
     if ((Invoke-Code 'install.ps1' @('-CodexHome', $home)) -ne 2) { throw 'duplicate install did not return 2' }
     'old' | Set-Content -LiteralPath (Join-Path $target 'marker.txt')
     if ((Invoke-Code 'install.ps1' @('-CodexHome', $home, '-Force')) -ne 0) { throw 'forced install failed' }
-    $backup = @(Get-ChildItem -LiteralPath (Join-Path $home 'pets') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
+    $backup = @(Get-ChildItem -LiteralPath (Join-Path $home 'pet-backups') -Directory | Where-Object Name -Like 'ellen-joe-pixel.backup.*')
     if ($backup.Count -ne 1 -or -not (Test-Path (Join-Path $backup.FullName 'marker.txt'))) { throw 'backup missing marker' }
     if ((Invoke-Code 'uninstall.ps1' @('-CodexHome', $home)) -ne 0) { throw 'uninstall failed' }
     if (Test-Path -LiteralPath $target) { throw 'target survived uninstall' }
@@ -515,7 +515,7 @@ set -e
 test "$code" -eq 2
 printf '%s\n' old > "$home/pets/ellen-joe-pixel/marker.txt"
 sh "$fixture/scripts/install.sh" --codex-home "$home" --force
-backup=$(find "$home/pets" -maxdepth 1 -type d -name 'ellen-joe-pixel.backup.*' -print)
+backup=$(find "$home/pet-backups" -maxdepth 1 -type d -name 'ellen-joe-pixel.backup.*' -print)
 test -n "$backup" && test -f "$backup/marker.txt"
 sh "$fixture/scripts/uninstall.sh" --codex-home "$home"
 test ! -e "$home/pets/ellen-joe-pixel"
@@ -554,20 +554,22 @@ validate source pet.json id/version/path and both source files
 create pets directory
 if target exists and force is false: exit 2 without writes
 copy pet.json and spritesheet.webp into a fresh sibling staging directory
-if target exists: rename target to timestamped backup
+if target exists: rename target to a uniquely named backup under `<CodexHome>/pet-backups`
 rename staging directory to target
 if final rename fails: restore backup when present
 report target and backup paths; exit 0
 ```
 
 PowerShell must use `Join-Path`, `Resolve-Path`, `ConvertFrom-Json`,
-`[IO.Path]::GetFullPath`, `Move-Item -LiteralPath`, and `Remove-Item -LiteralPath`
-only for the verified staging directory. POSIX must quote every path, accept the
-space in `F:\Codex Pet`, create staging with
-`mktemp -d "$pets_dir/.ellen-joe-pixel.stage.XXXXXX"`, and use `mv` only on
-resolved exact source, staging, target, and backup paths.
+`[IO.Path]::GetFullPath`, verified directory rename primitives, and
+`Remove-Item -LiteralPath` only for the verified staging directory. POSIX must
+quote every path, accept the space in `F:\Codex Pet`, create staging with
+`mktemp -d "$pets_dir/.ellen-joe-pixel.stage.XXXXXX"`, and use the Python 3
+`os.rename` helper only on resolved exact source, staging, target, and backup
+paths.
 
-If the final move fails after backup creation, attempt `mv "$backup" "$target"`.
+If the final move fails after backup creation, attempt the directory rename from
+`"$backup"` to `"$target"`.
 Return exit `4` if rollback restores the original and `5` if restoration fails.
 
 Create `scripts/install.ps1`:
@@ -592,6 +594,7 @@ $home = [IO.Path]::GetFullPath($homeInput)
 if ($home.TrimEnd('\') -eq [IO.Path]::GetPathRoot($home).TrimEnd('\')) { Stop-With 3 'Codex home cannot be a filesystem root.' }
 $pets = Join-Path $home 'pets'
 $target = Join-Path $pets 'ellen-joe-pixel'
+$backupDir = Join-Path $home 'pet-backups'
 try { New-Item -ItemType Directory -Path $pets -Force | Out-Null } catch { Stop-With 4 ("Cannot create pets directory: " + $_.Exception.Message) }
 if (Test-Path -LiteralPath $target) {
     if ((Get-Item -LiteralPath $target -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { Stop-With 3 'Refusing a reparse-point target.' }
@@ -603,16 +606,15 @@ try {
     New-Item -ItemType Directory -Path $stage | Out-Null
     Copy-Item -LiteralPath $manifestPath, $sheetPath -Destination $stage
     if (Test-Path -LiteralPath $target) {
-        $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ')
-        $backup = "$target.backup.$stamp.$PID"
-        Move-Item -LiteralPath $target -Destination $backup
+        $backup = Join-Path $backupDir ("ellen-joe-pixel.backup." + [guid]::NewGuid().ToString('N'))
+        [IO.Directory]::Move($target, $backup)
     }
-    Move-Item -LiteralPath $stage -Destination $target
+    [IO.Directory]::Move($stage, $target)
 } catch {
     $failure = $_.Exception.Message
     if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
     if ($backup -and (Test-Path -LiteralPath $backup) -and -not (Test-Path -LiteralPath $target)) {
-        try { Move-Item -LiteralPath $backup -Destination $target } catch { Stop-With 5 ("Install failed and rollback failed: " + $_.Exception.Message) }
+        try { [IO.Directory]::Move($backup, $target) } catch { Stop-With 5 ("Install failed and rollback failed: " + $_.Exception.Message) }
     }
     Stop-With 4 ("Install failed; prior target restored when present: $failure")
 }
@@ -655,13 +657,26 @@ cleanup() { [ -n "$stage" ] && [ -d "$stage" ] && rm -rf "$stage"; }
 trap cleanup EXIT HUP INT TERM
 cp "$source_dir/pet.json" "$source_dir/spritesheet.webp" "$stage/" || fail 4 'Cannot stage package files.'
 if [ -e "$target" ]; then
-    backup="$target.backup.$(date -u +%Y%m%dT%H%M%SZ).$$"
-    mv "$target" "$backup" || fail 4 'Cannot create backup.'
+    token=$(python3 -c 'import secrets; print(secrets.token_hex(16))')
+    backup="$codex_home/pet-backups/ellen-joe-pixel.backup.$token"
+    python3 - "$target" "$backup" <<'PY' || fail 4 'Cannot create backup.'
+import os
+import sys
+os.rename(sys.argv[1], sys.argv[2])
+PY
 fi
-if ! mv "$stage" "$target"; then
+if ! python3 - "$stage" "$target" <<'PY'; then
+import os
+import sys
+os.rename(sys.argv[1], sys.argv[2])
+PY
     stage=
     if [ -n "$backup" ] && [ -e "$backup" ] && [ ! -e "$target" ]; then
-        mv "$backup" "$target" || fail 5 'Install and rollback both failed.'
+        python3 - "$backup" "$target" <<'PY' || fail 5 'Install and rollback both failed.'
+import os
+import sys
+os.rename(sys.argv[1], sys.argv[2])
+PY
     fi
     fail 4 'Install failed; prior target restored when present.'
 fi
@@ -678,7 +693,7 @@ Both uninstallers must resolve `<CodexHome>/pets` and form the literal child
 `ellen-joe-pixel`. Refuse an empty home, filesystem root, pets root, symbolic
 link target, or basename other than `ellen-joe-pixel` with exit `3`. If the
 target is absent, exit `2`. Remove only the verified target; never remove
-timestamped backups or neighboring pets.
+backups or neighboring pets.
 
 Create `scripts/uninstall.ps1`:
 

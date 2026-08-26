@@ -58,24 +58,132 @@ cleanup_stage() {
     case "$stage" in "$pets_dir"/.ellen-joe-pixel.stage.*) ;; *) return 1 ;; esac
     [ ! -e "$stage" ] || { rm -rf "$stage" && [ ! -e "$stage" ]; }
 }
+cleanup_transaction() {
+    transaction_cleanup_ok=1
+    cleanup_stage || transaction_cleanup_ok=0
+    if [ "${lock_held:-0}" -eq 1 ]; then
+        if rmdir "$install_lock"; then
+            lock_held=0
+        else
+            transaction_cleanup_ok=0
+        fi
+    fi
+    [ "$transaction_cleanup_ok" -eq 1 ]
+}
+cleanup_on_exit() {
+    exit_code=$?
+    trap '' HUP INT TERM
+    trap - EXIT
+    if cleanup_transaction; then
+        exit "$exit_code"
+    fi
+    exit 5
+}
+cleanup_on_signal() {
+    trap '' HUP INT TERM
+    cleanup_transaction || :
+    trap - EXIT HUP INT TERM
+    exit 5
+}
+acquire_install_lock() {
+    trap '' HUP INT TERM
+    if mkdir "$install_lock" 2>/dev/null; then
+        lock_held=1
+        trap 'cleanup_on_signal' HUP INT TERM
+        return 0
+    fi
+    trap 'cleanup_on_signal' HUP INT TERM
+    fail 4 "Cannot acquire install lock: $install_lock"
+}
+rename_directory() {
+    rename_source=$1
+    rename_destination=$2
+    "$python_cmd" - "$rename_source" "$rename_destination" <<'PY'
+import os
+import stat
+import sys
+
+source, destination = sys.argv[1:]
+
+
+def reject(message):
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+try:
+    source_info = os.lstat(source)
+except OSError as error:
+    reject(f"cannot inspect source directory: {error}")
+if stat.S_ISLNK(source_info.st_mode) or not stat.S_ISDIR(source_info.st_mode):
+    reject("source is not a real directory")
+for parent in (os.path.dirname(source), os.path.dirname(destination)):
+    try:
+        parent_info = os.lstat(parent)
+    except OSError as error:
+        reject(f"cannot inspect destination parent: {error}")
+    if stat.S_ISLNK(parent_info.st_mode):
+        reject("destination parent is a symbolic link")
+try:
+    os.lstat(destination)
+except FileNotFoundError:
+    pass
+except OSError as error:
+    reject(f"cannot inspect destination: {error}")
+else:
+    reject("destination already exists")
+try:
+    os.rename(source, destination)
+except OSError as error:
+    reject(f"directory rename failed: {error}")
+PY
+}
+new_backup_path() {
+    [ -n "$backup_dir" ] || return 1
+    backup_attempt=0
+    while [ "$backup_attempt" -lt 16 ]; do
+        backup_token=$("$python_cmd" -c 'import secrets; print(secrets.token_hex(16))') || return 1
+        backup_candidate="$backup_dir/ellen-joe-pixel.backup.$backup_token"
+        if [ ! -e "$backup_candidate" ] && [ ! -L "$backup_candidate" ] && ! is_link_or_reparse "$backup_candidate"; then
+            printf '%s\n' "$backup_candidate"
+            return 0
+        fi
+        backup_attempt=$((backup_attempt + 1))
+    done
+    return 1
+}
 finish_failed_install() {
     failure_message=$1
+    trap '' HUP INT TERM
     rollback_ok=1
     if [ -n "$backup" ]; then
-        if [ -e "$backup" ] && [ ! -e "$target" ]; then
-            mv "$backup" "$target" || rollback_ok=0
+        if [ -e "$backup" ] && [ ! -e "$target" ] && ! is_link_or_reparse "$target"; then
+            rename_directory "$backup" "$target" || rollback_ok=0
         else
             rollback_ok=0
         fi
     fi
-    if cleanup_stage && [ "$rollback_ok" -eq 1 ]; then
-        stage=
-        trap - EXIT HUP INT TERM
-        fail 4 "Install failed; prior target restored when present: $failure_message"
-    fi
+    cleanup_ok=1
+    cleanup_transaction || cleanup_ok=0
     stage=
     trap - EXIT HUP INT TERM
+    if [ "$cleanup_ok" -eq 1 ] && [ "$rollback_ok" -eq 1 ]; then
+        fail 4 "Install failed; prior target restored when present: $failure_message"
+    fi
     fail 5 "Install failed and rollback or cleanup failed: $failure_message"
+}
+resolve_backup_directory() {
+    backup_candidate="$1/pet-backups"
+    if is_link_or_reparse "$backup_candidate" || [ -n "$(readlink "$backup_candidate" 2>/dev/null || :)" ]; then
+        fail 3 'Refusing a symbolic-link or reparse-point pet-backups directory.'
+    elif [ -e "$backup_candidate" ]; then
+        [ -d "$backup_candidate" ] || fail 3 'Refusing a non-directory pet-backups path.'
+    else
+        mkdir "$backup_candidate" || fail 4 'Cannot create pet-backups directory.'
+    fi
+    backup_result=$(CDPATH= cd -P "$backup_candidate" && pwd -P) || fail 4 'Cannot resolve pet-backups directory.'
+    [ "$backup_result" = "$backup_candidate" ] || fail 3 'Pet-backups directory escapes Codex home.'
+    printf '%s\n' "$backup_result"
 }
 
 if [ -n "${CODEX_HOME-}" ]; then
@@ -206,25 +314,45 @@ fi
 pets_dir=$(CDPATH= cd -P "$pets_candidate" && pwd -P) || fail 4 'Cannot resolve pets directory.'
 [ "$pets_dir" = "$pets_candidate" ] || fail 3 'Pets directory escapes Codex home.'
 target="$pets_dir/ellen-joe-pixel"
+install_lock="$pets_dir/.ellen-joe-pixel.install.lock"
+backup_dir=
+stage=
+backup=
+lock_held=0
+trap 'cleanup_on_exit' EXIT
+trap 'cleanup_on_signal' HUP INT TERM
+acquire_install_lock
 if is_link_or_reparse "$target"; then
     fail 3 'Refusing a symbolic-link target.'
 elif [ -e "$target" ]; then
     [ -d "$target" ] || fail 3 'Refusing a non-directory target.'
     [ "$force" -eq 1 ] || fail 2 "Target already exists: $target"
+    backup_dir=$(resolve_backup_directory "$codex_home") || exit $?
 fi
 
 stage=$(mktemp -d "$pets_dir/.ellen-joe-pixel.stage.XXXXXX") || fail 4 'Cannot create staging directory.'
-backup=
-trap 'cleanup_stage || :' EXIT HUP INT TERM
 cp "$source_dir/pet.json" "$source_dir/spritesheet.webp" "$stage/" || finish_failed_install 'Cannot stage package files.'
-if [ -e "$target" ]; then
-    backup="$target.backup.$(date -u +%Y%m%dT%H%M%SZ).$$"
-    mv "$target" "$backup" || finish_failed_install 'Cannot create backup.'
+if is_link_or_reparse "$target"; then
+    fail 3 'Refusing a symbolic-link target.'
+elif [ -e "$target" ]; then
+    [ -d "$target" ] || fail 3 'Refusing a non-directory target.'
+    if [ -z "$backup_dir" ]; then
+        backup_dir=$(resolve_backup_directory "$codex_home") || exit $?
+    fi
+    backup_candidate=$(new_backup_path) || finish_failed_install 'Cannot allocate a unique backup path.'
+    [ -n "$backup_candidate" ] || finish_failed_install 'Cannot allocate a unique backup path.'
+    rename_directory "$target" "$backup_candidate" || finish_failed_install 'Cannot create backup.'
+    backup=$backup_candidate
 fi
-if ! mv "$stage" "$target"; then
+if ! rename_directory "$stage" "$target"; then
     finish_failed_install 'Final move failed.'
 fi
 stage=
+trap '' HUP INT TERM
+if ! cleanup_transaction; then
+    trap - EXIT HUP INT TERM
+    fail 5 'Install succeeded but cleanup failed.'
+fi
 trap - EXIT HUP INT TERM
 printf 'Installed: %s\n' "$target"
 [ -z "$backup" ] || printf 'Backup: %s\n' "$backup"

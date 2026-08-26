@@ -44,10 +44,29 @@ if (-not $homeSpecified) {
 $codexHome = Resolve-CodexHome $homeInput
 $pets = Resolve-PetsDirectory $codexHome
 $target = Join-Path $pets 'ellen-joe-pixel'
-if ([IO.Path]::GetFileName($target) -ne 'ellen-joe-pixel' -or [IO.Path]::GetDirectoryName($target) -ne [IO.Path]::GetFullPath($pets)) { Stop-With 3 'Target verification failed.' }
-if (-not (Test-Path -LiteralPath $target)) { Stop-With 2 "Target is not installed: $target" }
-$item = Get-Item -LiteralPath $target -Force
-if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
-try { Remove-Item -LiteralPath $target -Recurse -Force } catch { Stop-With 5 ("Uninstall failed: " + $_.Exception.Message) }
+$installLock = Join-Path $pets '.ellen-joe-pixel.install.lock'
+$lockStream = $null
+$lockHeld = $false
+try {
+    try {
+        $lockStream = [IO.File]::Open($installLock, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $lockHeld = $true
+    } catch {
+        Stop-With 4 ("Cannot acquire install lock: " + $_.Exception.Message)
+    }
+    if ([IO.Path]::GetFileName($target) -ne 'ellen-joe-pixel' -or [IO.Path]::GetDirectoryName($target) -ne [IO.Path]::GetFullPath($pets)) { Stop-With 3 'Target verification failed.' }
+    if (-not (Test-Path -LiteralPath $target)) { Stop-With 2 "Target is not installed: $target" }
+    $item = Get-Item -LiteralPath $target -Force
+    if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Stop-With 3 'Refusing a non-directory or reparse-point target.' }
+    try { Remove-Item -LiteralPath $target -Recurse -Force } catch { Stop-With 5 ("Uninstall failed: " + $_.Exception.Message) }
+} finally {
+    if ($lockHeld) {
+        $lockCleanupOk = $true
+        try { $lockStream.Dispose() } catch { $lockCleanupOk = $false }
+        try { [IO.File]::Delete($installLock) } catch { $lockCleanupOk = $false }
+        $lockHeld = $false
+        if (-not $lockCleanupOk) { Stop-With 5 'Uninstall failed and install-lock cleanup failed.' }
+    }
+}
 Write-Host "Uninstalled: $target"
 exit 0
