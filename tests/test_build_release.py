@@ -46,6 +46,33 @@ def test_release_names_contents_and_checksums(tmp_path: Path) -> None:
     assert all(re.fullmatch(r"[0-9a-f]{64}  .+", line) for line in lines)
 
 
+def test_release_carries_bilingual_docs_and_public_rights_notices(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    fake_repo(repo)
+    for relative in (
+        "README.zh-CN.md",
+        "LICENSE",
+        "THIRD_PARTY_NOTICES.md",
+    ):
+        path = repo / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"public release file: {relative}\n", encoding="utf-8")
+
+    zip_path, tar_path, _ = build_release(repo, "v0.1.0", tmp_path / "dist")
+    expected = {
+        "ellen-joe-pixel-v0.1.0/README.md",
+        "ellen-joe-pixel-v0.1.0/README.zh-CN.md",
+        "ellen-joe-pixel-v0.1.0/LICENSE",
+        "ellen-joe-pixel-v0.1.0/NOTICE.md",
+        "ellen-joe-pixel-v0.1.0/THIRD_PARTY_NOTICES.md",
+    }
+    with zipfile.ZipFile(zip_path) as archive:
+        assert expected <= set(archive.namelist())
+    with tarfile.open(tar_path, "r:gz") as archive:
+        assert expected <= {item.name for item in archive.getmembers() if item.isfile()}
+
+
 def test_release_rejects_invalid_version(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()

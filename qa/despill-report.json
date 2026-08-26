@@ -1,7 +1,7 @@
 {
   "ok": true,
-  "input": "F:\\Codex Pet\\artifacts\\ellen-joe-pixel\\v0.1.0-run\\final-v2\\spritesheet-pre-despill.png",
-  "output": "F:\\Codex Pet\\artifacts\\ellen-joe-pixel\\v0.1.0-run\\final-v2\\spritesheet.png",
+  "input": "<artifact-root>\\ellen-joe-pixel\\v0.1.0-run\\final-v2\\spritesheet-pre-despill.png",
+  "output": "<artifact-root>\\ellen-joe-pixel\\v0.1.0-run\\final-v2\\spritesheet.png",
   "chroma_key": "#00FF00",
   "algorithm": "edge-local-chroma-spill-suppression",
   "strength": 1,

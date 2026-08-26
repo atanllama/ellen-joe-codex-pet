@@ -3,8 +3,13 @@
 **Status:** Approved for implementation  
 **Date:** 2026-08-15  
 **Target release:** v0.1.0  
-**Repository:** `ellen-joe-codex-pet` (private)  
+**Repository:** `ellen-joe-codex-pet` (private at design time; historical)
 **Pet id:** `ellen-joe-pixel`
+
+> **Historical policy note:** This is a private-first design record. Its original
+> private-release policy was later superseded by the public-release policy in
+> `LICENSE`, `NOTICE.md`, and `THIRD_PARTY_NOTICES.md`; those files govern
+> current distribution.
 
 ## 1. Objective
 
@@ -15,7 +20,7 @@ install safely on Windows, macOS, and Linux.
 The visual direction is a compact pixel-art Ellen with approximately 3.5-head
 proportions. Her animation personality is 70% sleepy/cool and 30% cute. The
 delivery includes the validated pet package, cross-platform installers, retained
-QA evidence, and a private GitHub release.
+QA evidence, and a private GitHub release (the historical release target).
 
 ## 2. Scope and non-goals
 
@@ -28,14 +33,16 @@ QA evidence, and a private GitHub release.
 - PowerShell installation and uninstallation for Windows.
 - POSIX shell installation and uninstallation for macOS and Linux.
 - CI validation on Windows, macOS, and Ubuntu.
-- A private GitHub repository and a validated `v0.1.0` release.
+- A private GitHub repository and a validated `v0.1.0` release (the historical
+  private-first target).
 
 ### Out of scope
 
 - Reusing or redistributing ANI, PSD, sprites, or source code from either studied
   repository.
 - Chat, planning, TTS, caption, or PyQt functionality from the Ellen desktop app.
-- Public distribution, commercial use, or an official character endorsement.
+- At design time, public distribution, commercial use, or an official character
+  endorsement was out of scope.
 - A one-off v1 atlas or a partial pet without look directions.
 
 ## 3. Source and rights policy
@@ -52,10 +59,11 @@ speech elements, framing, and pixels are excluded. The Frieren repository may
 inform the observed Codex package shape, while the installed `hatch-pet` v2
 contract remains the technical authority.
 
-The private repository will include `NOTICE.md` stating that this is an
+The then-private repository was to include `NOTICE.md` stating that this is an
 unofficial, non-commercial fan project; Ellen Joe and Zenless Zone Zero belong
 to their respective rights holders; and the artwork is not offered for public
-redistribution. No broad public art license is added by default.
+redistribution. The original design added no broad public art license by
+default; that private-first policy was later superseded as noted above.
 
 ## 4. Visual identity
 
@@ -180,14 +188,16 @@ recorded. Cardinal ambiguity and deterministic failures are never overridden.
 
 ## 9. Artifact and repository locations
 
-All project and generated files stay under the user-provided F-drive root:
+All project and generated files stay under user-provided local staging roots:
 
 ```text
-F:\Codex Pet\
+<local-reference-staging>\
 ├─ ellen-joe-codex-pet\        # Git repository and curated deliverables
 └─ artifacts\
    └─ ellen-joe-pixel\         # Raw bounded generation/QA run artifacts
 ```
+
+In the references below, `<artifact-root>` denotes the local `artifacts` root.
 
 The retained repository layout is:
 
@@ -214,10 +224,10 @@ ellen-joe-codex-pet/
 ```
 
 Raw prompts, layout guides, decoded strips, extracted frames, PNG intermediates,
-and the image-generation job manifest remain in the F-drive artifact area during
+and the image-generation job manifest remain in the local artifact area during
 production. After successful packaging, keep only the bounded evidence required
 for reproducibility and troubleshooting; curated QA evidence is copied into the
-private repository.
+then-private repository.
 
 ## 10. Cross-platform installation
 
@@ -241,7 +251,7 @@ Uninstallers resolve and verify the exact pet directory before removal and never
 modify other pets or global Codex configuration. Backups are preserved. Repeated
 install and uninstall operations return clear, deterministic results.
 
-## 11. CI and release
+## 11. CI and release (historical private-first plan)
 
 GitHub Actions runs on Windows, macOS, and Ubuntu. Each job validates the package
 and performs install, duplicate-install protection, forced replacement, and
@@ -259,7 +269,8 @@ After all local and CI checks pass:
 
 ## 12. Completion criteria
 
-The project is complete when the original full-body Ellen pet passes the complete
-Codex v2 deterministic and visual QA contract, installs and uninstalls safely on
-all three target operating-system families, is visibly demonstrated where
-feasible, and is published as `v0.1.0` in the requested private GitHub repository.
+The project was considered complete under this historical plan when the original
+full-body Ellen pet passed the complete Codex v2 deterministic and visual QA
+contract, installed and uninstalled safely on all three target operating-system
+families, was visibly demonstrated where feasible, and was published as `v0.1.0`
+in the requested private GitHub repository.

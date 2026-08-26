@@ -2,9 +2,14 @@
 
 **Status:** Approved canonical base  
 **Generation completed:** 2026-08-15T16:59:57Z  
-**Canonical artifact:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\references\canonical-base.png`  
+**Canonical artifact:** `<artifact-root>\ellen-joe-pixel\v0.1.0-run\references\canonical-base.png`
 **Canonical SHA-256:** `E5AEF69D7F10FFD8A6EEFC25E29D5CEE56B0AC91973209A66D1045028ABAA11F`  
-**Normal-size QA preview:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run\qa\base-normal-size.png`
+**Normal-size QA preview:** `<artifact-root>\ellen-joe-pixel\v0.1.0-run\qa\base-normal-size.png`
+
+> **Historical policy note:** This is a private-first production record. Its
+> original private-release policy was later superseded by the public-release
+> policy in `LICENSE`, `NOTICE.md`, and `THIRD_PARTY_NOTICES.md`; those files
+> govern current distribution.
 
 This file records geometry and identity decisions only. It does not embed or
 redistribute any studied source image.

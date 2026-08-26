@@ -17,7 +17,10 @@ INCLUDED = (
     "scripts/install.sh",
     "scripts/uninstall.sh",
     "README.md",
+    "README.zh-CN.md",
+    "LICENSE",
     "NOTICE.md",
+    "THIRD_PARTY_NOTICES.md",
 )
 TEXT_INCLUDED = frozenset(
     {
@@ -27,7 +30,10 @@ TEXT_INCLUDED = frozenset(
         "scripts/install.sh",
         "scripts/uninstall.sh",
         "README.md",
+        "README.zh-CN.md",
+        "LICENSE",
         "NOTICE.md",
+        "THIRD_PARTY_NOTICES.md",
     }
 )
 

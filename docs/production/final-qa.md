@@ -1,13 +1,18 @@
 # Final QA — Ellen Joe Pixel v0.1.0
 
-**Status:** accepted for private packaging
+**Status:** accepted for private packaging (historical private-first status)
 **Visual verdict:** `visual_qa=pass`
 **QA date:** 2026-08-25
-**Artifact run:** `F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`
+**Artifact run:** `<artifact-root>\ellen-joe-pixel\v0.1.0-run`
+
+> **Historical policy note:** This is a private-first QA record. Its original
+> private-release policy was later superseded by the public-release policy in
+> `LICENSE`, `NOTICE.md`, and `THIRD_PARTY_NOTICES.md`; those files govern
+> current distribution.
 
 This record describes the exact final-v2 evidence used for the staged package.
-The F-drive run is the source of truth for generation and QA evidence; only
-curated final media and reports belong in the private repository.
+The artifact run is the source of truth for generation and QA evidence; only
+curated final media and reports belonged in the then-private repository.
 
 ## Final artifact identity
 
@@ -56,7 +61,7 @@ Row 10's accepted registered candidate is recorded at
 ### Task 9 source paths and retry ledger
 
 The complete source-of-truth paths below are under
-`F:\Codex Pet\artifacts\ellen-joe-pixel\v0.1.0-run`:
+`<artifact-root>\ellen-joe-pixel\v0.1.0-run`:
 
 | Stage | Accepted source and derived evidence | Retry count |
 | --- | --- | ---: |
