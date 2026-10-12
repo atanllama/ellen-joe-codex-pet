@@ -37,3 +37,14 @@ def test_release_requires_same_commit_checks():
 
 def test_validate_uses_same_checks():
     assert read('validate.yml')['jobs']['checks']['uses']=='./.github/workflows/checks.yml'
+
+def test_windows_checks_restore_native_module_path(tmp_path,monkeypatch):
+    step=next(s for s in read('checks.yml')['jobs']['check']['steps']
+              if s.get('name')=='Restore native Windows PowerShell modules')
+    assert step['if']=="runner.os == 'Windows'" and step['shell']=='python'
+    output=tmp_path/'github-env'
+    monkeypatch.setenv('SystemRoot',str(tmp_path/'Windows'))
+    monkeypatch.setenv('GITHUB_ENV',str(output))
+    exec(step['run'],{})
+    expected=tmp_path/'Windows/System32/WindowsPowerShell/v1.0/Modules'
+    assert output.read_text(encoding='utf-8')==f'PSModulePath={expected}\n'

@@ -31,6 +31,15 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
               for name in ("TEMP", "TMP", "TMPDIR"):
                   environment.write(f"{name}={os.environ['RUNNER_TEMP']}\n")
+      - name: Restore native Windows PowerShell modules
+        if: runner.os == 'Windows'
+        shell: python
+        run: |
+          import os
+          from pathlib import Path
+          modules = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/Modules"
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
+              environment.write(f"PSModulePath={modules}\n")
       - run: python -m pip install -r requirements-dev.txt
       - run: python -B -m pytest -q -p no:cacheprovider
       - run: node --test tests/playback.test.mjs
