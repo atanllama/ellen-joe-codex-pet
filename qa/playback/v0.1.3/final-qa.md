@@ -2,13 +2,13 @@
 
 This is an engineering candidate with explicit acceptance gaps. It is not a four-dimension acceptance PASS. Branch: `codex/ellen-quality-playback`, based on `e758b3200b378205c67351fdbb288d00fcf1b65b`.
 
-Verified product/CI commit: `cd3d943a0b00e498efbf3ed9171fc83115afa3ac`; candidate README/release-note bytes were included in the final test/build run. The commit containing this QA record supplies their final documentation identity. No later code/artwork is covered unless recorded below.
+Original product/CI commit: `cd3d943a0b00e498efbf3ed9171fc83115afa3ac`. Independent review covered `e758b32..372e21d`; the subsequent single repair commit contains both playback fixes, their regressions, and this updated QA record. Candidate README/release-note bytes and archive hashes remain unchanged. See [execution record](execution-record.md) for the complete rulings and review disposition.
 
 | Dimension | Status | Actual evidence / gap |
 |---|---|---|
 | PACKAGE | PASS | 217 Python tests; exact final ZIP and tar.gz SHA verification, independent extraction, validation and isolated lifecycle |
 | INSTALLER | NOT_RUN | Windows PS 5.1/7 and Windows Git sh PASS; native macOS/Ubuntu NOT_RUN, remote matrix not executed |
-| PREVIEW | NOT_RUN | 11 Node tests and browser control/DOM-adapter checks PASS; continuous visual sign-off, direct file-open, physical tab hide remain unverified |
+| PREVIEW | NOT_RUN | 13 Node tests and browser control/DOM-adapter checks PASS; continuous visual sign-off, direct file-open, physical tab hide remain unverified |
 | APP | NOT_RUN | Installed bytes read-only match; no selector/state/rendering observation in current application |
 
 ## Acceptance mapping
@@ -46,7 +46,7 @@ Commands run from the isolated worktree; Python denotes `F:/Codex Temp/ellen-imp
 
 ```text
 python -B -m pytest -q -p no:cacheprovider --basetemp <run>/final-tests -> 217 passed, exit 0
-node --test tests/playback.test.mjs -> 11 passed, exit 0
+node --test tests/playback.test.mjs -> 13 passed, exit 0
 python -B scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json -> exit 0
 pwsh -NoProfile -File tests/install-windows.ps1 -ShellPath pwsh -> exit 0
 powershell.exe -NoProfile -File tests/install-windows.ps1 -ShellPath powershell.exe -> exit 0
@@ -58,6 +58,10 @@ python -B <run>/verify-final.py -> both archives SHA/validate/install 0, repeat 
 Full local output is under `F:/Codex Temp/ellen-implementation-20261012`: final-tests.log, windows7.log, windows51b.log, posix.log, final-archive-check.json. PS5.1 inherited module-path interference was removed at process scope; its harness now correctly captures expected native stderr without aborting. No system environment settings changed.
 
 ## Evidence and remaining work
+
+Independent review found no Critical issues and two Important playback defects. Both regressions failed first and passed after the single fix pass: stepping backward after completion now allows Play to resume that frame; returning to idle now respects the idle profile's repeat/hold policy and retains its effective frame identity when stopped. Regenerated HTML passed the real-browser Previous/Play check. Both rebuilt archives were re-extracted and passed the isolated lifecycle again with unchanged hashes. Post-review full-suite evidence is `review-fix-tests.log`; it supersedes the initial suite run for the repaired playback tree.
+
+Deferred minors: description consisting only of U+001C is rejected by Python/POSIX but accepted by PowerShell because their whitespace sets differ (formal manifest unaffected); two test files have a new blank line at EOF (`git diff --check e758b32..HEAD` reports these). These are known minor findings, not an unconditional clean-review claim.
 
 See [runtime evidence](runtime-evidence.md), [browser checklist](preview-checklist.md), [action assessment](action-assessment.md), [look regression](look-regression.md), [repair decision](repair-record.md), and [app observation procedure](app-observation.md).
 

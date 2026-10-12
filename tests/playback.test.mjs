@@ -60,3 +60,21 @@ test('synthetic condition precedence and restart policy',()=>{
  s=cmd(tick(s,200),'conditions',{activeStates:['review']});assert.equal(s.frameIndex,1);
 });
 test('reducer does not mutate prior state',()=>{let s=fresh();tick(s,1000);assert.equal(s.frameIndex,0);assert.equal(s.elapsedMs,0);});
+
+test('completed once playback resumes from a manually selected frame',()=>{
+ let s=cmd(tick(fresh(),960),'step',{direction:-1});
+ assert.equal(currentFrame(s).col,4);assert.equal(s.playing,false);
+ s=cmd(s,'play');assert.equal(currentFrame(s).col,4);
+ s=tick(s,160);assert.equal(currentFrame(s).col,5);assert.equal(s.playing,true);
+ assert.equal(tick(s,160).playing,false);
+});
+
+test('returned idle honors repeat and hold while preserving its displayed identity',()=>{
+ const p=structuredClone(runtime);p.actions.idle.after='hold';p.actions.idle.repeatCount=2;
+ let s=tick(createPlayback(p,'waving','codex'),2100);
+ s=tick(s,6600);assert.equal(s.playing,true);assert.equal(currentFrame(s).col,0);
+ s=tick(s,6600);assert.equal(s.playing,false);assert.equal(currentFrame(s).row,0);assert.equal(currentFrame(s).col,5);
+ s=cmd(s,'step',{direction:-1});assert.equal(currentFrame(s).row,0);assert.equal(currentFrame(s).col,4);
+ s=cmd(s,'play');assert.equal(currentFrame(s).row,0);assert.equal(currentFrame(s).col,4);
+ s=cmd(s,'replay');assert.equal(currentFrame(s).row,3);assert.equal(currentFrame(s).col,0);
+});

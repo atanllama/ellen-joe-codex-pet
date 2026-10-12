@@ -16,3 +16,4 @@ Review evidence: `preview-dark.png`. Static UI capture does not prove loop seman
 ## Remaining visual acceptance
 
 The automated browser can expose frames and timing, but these observations do not establish a continuous human visual judgement of motion. Physical background-tab restoration and direct file opening remain unverified. PREVIEW overall therefore remains NOT_RUN (partial automation PASS), rather than an unconditional PASS.
+- Post-review PASS: completed diagnostic idle showed row 0 / col 5 / stopped; Previous showed col 4 / paused; Play continued at col 4 / playing. Tested using actual controls against regenerated final HTML. The only console error was a missing optional favicon (404).
