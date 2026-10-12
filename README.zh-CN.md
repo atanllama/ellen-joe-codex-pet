@@ -33,13 +33,13 @@ review。注视方向从 000（上）经过 090（右）、180（下）到 270�
 
 | 平台 | 当前支持证据 | 要求 |
 | --- | --- | --- |
-| Windows | Windows CI 任务已测试 | PowerShell 5.1 或 PowerShell 7 |
-| macOS | macOS CI 任务已验证 | POSIX sh 和 Python 3 |
-| Ubuntu | Ubuntu CI 任务已验证 | POSIX sh 和 Python 3 |
+| Windows | 本地 PS 5.1/7 隔离测试通过；候选 CI 未运行 | PowerShell 5.1 或 PowerShell 7 |
+| macOS | 候选版本未运行 macOS CI | POSIX sh 和 Python 3 |
+| Ubuntu | 候选版本未运行 Ubuntu CI | POSIX sh 和 Python 3 |
 | 其他 Linux 发行版 | 本仓库不保证 | 请自行检查脚本并测试 |
 
 POSIX 安装脚本会使用 Python 3 校验 manifest。仓库校验器还需要 Pillow；
-运行校验器前请安装开发依赖：
+运行校验器前请安装校验依赖：
 
 ~~~sh
 python -m pip install -r requirements-validator.txt
@@ -131,7 +131,7 @@ Windows 等价命令：
 python .\scripts\validate_pet.py .\pet\ellen-joe-pixel
 ~~~
 
-校验成功返回 0，包契约失败返回 1。当前 WebP 图集的 SHA-256 为：
+校验成功返回 0，包契约失败返回 1。批准 WebP 图集的 SHA-256 统一记录于：
 
 ~~~text
 release-assets.json -> spritesheetSha256

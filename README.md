@@ -138,7 +138,7 @@ python .\scripts\validate_pet.py .\pet\ellen-joe-pixel
 ~~~
 
 The validator returns `0` for a valid package and `1` for a contract
-failure. The current packaged WebP SHA-256 is:
+failure. The approved WebP SHA-256 is recorded in:
 
 ~~~text
 release-assets.json -> spritesheetSha256
