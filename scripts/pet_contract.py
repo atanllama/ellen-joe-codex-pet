@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-import json
+try:
+    from .manifest_contract import parse_manifest
+except ImportError:
+    from manifest_contract import parse_manifest
 from pathlib import Path
 
 from PIL import Image
@@ -28,29 +31,9 @@ def validate_package(pet_dir: Path) -> list[str]:
     if not manifest_path.is_file():
         return ["missing pet.json"]
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        return [f"invalid pet.json: {exc}"]
-    if not isinstance(manifest, dict):
-        return ["pet.json must contain a JSON object"]
-
-    expected = {
-        "id": EXPECTED_ID,
-        "displayName": EXPECTED_DISPLAY_NAME,
-        "spriteVersionNumber": 2,
-        "spritesheetPath": "spritesheet.webp",
-    }
-    for key, value in expected.items():
-        if manifest.get(key) != value:
-            errors.append(
-                f"{key} must be {value!r}"
-                if isinstance(value, str)
-                else f"{key} must be {value}"
-            )
-    if not isinstance(manifest.get("description"), str) or not manifest[
-        "description"
-    ].strip():
-        errors.append("description must be a non-empty string")
+        parse_manifest(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        return [str(exc)]
 
     sheet_path = pet_dir / "spritesheet.webp"
     if not sheet_path.is_file():
@@ -58,6 +41,12 @@ def validate_package(pet_dir: Path) -> list[str]:
         return errors
     try:
         with Image.open(sheet_path) as loaded:
+            if loaded.format != "WEBP":
+                return ["spritesheet must be WebP"]
+            if getattr(loaded, "is_animated", False):
+                return ["spritesheet must be static WebP"]
+            if "A" not in loaded.getbands():
+                return ["spritesheet must have an alpha channel"]
             atlas = loaded.convert("RGBA")
     except (OSError, ValueError) as exc:
         errors.append(f"invalid spritesheet.webp: {exc}")

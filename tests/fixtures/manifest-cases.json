@@ -1,0 +1,147 @@
+[
+  {
+    "name": "valid",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": true
+  },
+  {
+    "name": "bom",
+    "text": "\ufeff{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": true
+  },
+  {
+    "name": "version-2.0",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2.0, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "version-2e0",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2e0, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "version-\"2\"",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": \"2\", \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "version-true",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": true, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "version-NaN",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": NaN, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "version-Infinity",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": Infinity, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-id",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"id\":0,\"id\":0}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-displayName",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"displayName\":0,\"displayName\":0}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-description",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"description\":0,\"description\":0}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-spriteVersionNumber",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"spriteVersionNumber\":0,\"spriteVersionNumber\":0}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-spritesheetPath",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"spritesheetPath\":0,\"spritesheetPath\":0}",
+    "valid": false
+  },
+  {
+    "name": "duplicate-unknown",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"unknown\":0,\"unknown\":0}",
+    "valid": false
+  },
+  {
+    "name": "escaped-duplicate",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"\\u0069d\":\"ellen-joe-pixel\"}",
+    "valid": false
+  },
+  {
+    "name": "case-sensitive",
+    "text": "{\"ID\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "case-value",
+    "text": "{\"id\": \"ELLEN-JOE-PIXEL\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "empty-description",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"  \", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "unknown-case",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"a\":1,\"A\":2}",
+    "valid": true
+  },
+  {
+    "name": "nested-duplicate",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"unknown\":{\"x\":1,\"x\":2}}",
+    "valid": true
+  },
+  {
+    "name": "malformed",
+    "text": "{",
+    "valid": false
+  },
+  {
+    "name": "trailing",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}{}",
+    "valid": false
+  },
+  {
+    "name": "array",
+    "text": "[]",
+    "valid": false
+  },
+  {
+    "name": "constant",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\",\"a\":NaN}",
+    "valid": false
+  },
+  {
+    "name": "missing-id",
+    "text": "{\"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "missing-displayName",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "missing-description",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "missing-spriteVersionNumber",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "missing-spritesheetPath",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2}",
+    "valid": false
+  }
+]

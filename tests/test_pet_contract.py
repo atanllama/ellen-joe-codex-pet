@@ -74,3 +74,29 @@ def test_non_object_manifest_is_rejected(tmp_path: Path) -> None:
     pet_dir = write_package(tmp_path)
     (pet_dir / "pet.json").write_text("[]", encoding="utf-8")
     assert "pet.json must contain a JSON object" in validate_package(pet_dir)
+
+
+def test_disguised_png_rejected(tmp_path):
+    pet = write_package(tmp_path)
+    path = pet / 'spritesheet.webp'
+    with Image.open(path) as image:
+        image.save(path, format='PNG')
+    assert any('WebP' in error for error in validate_package(pet))
+
+
+def test_animated_webp_rejected(tmp_path):
+    pet = write_package(tmp_path)
+    path = pet / 'spritesheet.webp'
+    with Image.open(path) as image:
+        first = image.convert('RGBA')
+    second = first.copy()
+    second.putpixel((96,104), (255,0,0,255))
+    first.save(path, format='WEBP', lossless=True, save_all=True, append_images=[second], duration=160)
+    assert any('static' in error for error in validate_package(pet))
+
+
+def test_missing_alpha_rejected(tmp_path):
+    pet = write_package(tmp_path)
+    path = pet / 'spritesheet.webp'
+    Image.new('RGB', EXPECTED_SIZE, 'white').save(path, format='WEBP', lossless=True)
+    assert any('alpha' in error for error in validate_package(pet))
