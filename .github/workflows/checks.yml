@@ -1,0 +1,42 @@
+name: Shared checks
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      TEMP: ${{ runner.temp }}
+      TMP: ${{ runner.temp }}
+      TMPDIR: ${{ runner.temp }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.txt
+            requirements-validator.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -B -m pytest -q -p no:cacheprovider
+      - run: node --test tests/playback.test.mjs
+      - run: python -B scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh -NoProfile -File tests/install-windows.ps1 -ShellPath pwsh
+      - if: runner.os == 'Windows'
+        shell: powershell
+        run: powershell.exe -NoProfile -File tests/install-windows.ps1 -ShellPath powershell.exe
+      - if: runner.os != 'Windows'
+        shell: sh
+        run: sh tests/install-posix.sh
