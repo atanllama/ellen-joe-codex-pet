@@ -12,7 +12,7 @@ def test_reusable_check_matrix():
     commands='\n'.join(s.get('run','') for s in steps)
     assert 'node --test tests/playback.test.mjs' in commands
     assert '--asset-lock release-assets.json' in commands
-    assert 'python -B -m pytest' in commands # full suite includes independent archive tests
+    assert '"-m", "pytest"' in commands # full suite includes independent archive tests
     assert '-ShellPath pwsh' in commands and '-ShellPath powershell.exe' in commands
     assert 'sh tests/install-posix.sh' in commands
     assert job['env']['PYTHONDONTWRITEBYTECODE']=='1'
@@ -48,3 +48,7 @@ def test_windows_checks_restore_native_module_path(tmp_path,monkeypatch):
     exec(step['run'],{})
     expected=tmp_path/'Windows/System32/WindowsPowerShell/v1.0/Modules'
     assert output.read_text(encoding='utf-8')==f'PSModulePath={expected}\n'
+
+def test_python_checks_do_not_reintroduce_pwsh_module_paths():
+    step=next(s for s in read('checks.yml')['jobs']['check']['steps'] if 'pytest' in s.get('run',''))
+    assert step.get('shell')=='python'

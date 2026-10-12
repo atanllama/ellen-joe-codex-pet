@@ -41,7 +41,12 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
               environment.write(f"PSModulePath={modules}\n")
       - run: python -m pip install -r requirements-dev.txt
-      - run: python -B -m pytest -q -p no:cacheprovider
+      - name: Run Python contract tests
+        shell: python
+        run: |
+          import subprocess
+          import sys
+          raise SystemExit(subprocess.call([sys.executable, "-B", "-m", "pytest", "-q", "-p", "no:cacheprovider"]))
       - run: node --test tests/playback.test.mjs
       - run: python -B scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json
       - if: runner.os == 'Windows'
