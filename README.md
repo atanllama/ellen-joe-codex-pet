@@ -12,7 +12,7 @@ spritesheet, cross-platform installers, and a local package validator. It is
 unofficial and non-commercial. It is not affiliated with HoYoverse, Cognosphere,
 or OpenAI.
 
-See the [v0.1.2 release notes](docs/releases/v0.1.2.md), [rights and
+See the [v0.1.3 candidate notes](docs/releases/v0.1.3.md), [rights and
 license](#rights-license-and-sources), and [简体中文 guide](README.zh-CN.md).
 
 ## Package facts
@@ -35,17 +35,17 @@ through `090` (right), `180` (down), and `270` (left).
 
 | Platform | Current support evidence | Requirements |
 | --- | --- | --- |
-| Windows | Tested by the Windows CI job | PowerShell 5.1 or PowerShell 7 |
-| macOS | Validated by the macOS CI job | POSIX `sh` and Python 3 |
-| Ubuntu | Validated by the Ubuntu CI job | POSIX `sh` and Python 3 |
+| Windows | Local PowerShell 5.1 / 7 checks; candidate CI pending | PowerShell 5.1 or PowerShell 7 |
+| macOS | Candidate CI not run | POSIX `sh` and Python 3 |
+| Ubuntu | Candidate CI not run | POSIX `sh` and Python 3 |
 | Other Linux distributions | Not guaranteed by this repository | Check the scripts and test locally |
 
 The POSIX installer uses Python 3 to validate the manifest. The repository
-validator also uses Pillow; install the development requirements before running
+validator also uses Pillow; install the validator requirements before running
 it:
 
 ~~~sh
-python -m pip install -r requirements-dev.txt
+python -m pip install -r requirements-validator.txt
 ~~~
 
 The CI matrix validates the package contract and installer behavior. It does
@@ -120,12 +120,12 @@ The installer stages the new package, moves the old exact target to a uniquely
 named backup under `<CodexHome>/pet-backups`, and then installs the staged
 target. It reports the backup path. Keeping backups outside `pets` prevents
 Codex from discovering a backup as a second pet. Uninstall does not remove
-backups or neighboring pets. Release [v0.1.1](docs/releases/v0.1.1.md) includes
+backups or neighboring pets. Release [v0.1.1](https://github.com/atanllama/ellen-joe-codex-pet/blob/main/docs/releases/v0.1.1.md) includes
 the backup-location fix for duplicate entries.
 
 ## Verify the package
 
-From the repository root, after installing the requirements:
+From the extracted package root, after installing the validator requirements:
 
 ~~~sh
 python scripts/validate_pet.py pet/ellen-joe-pixel
@@ -141,7 +141,7 @@ The validator returns `0` for a valid package and `1` for a contract
 failure. The current packaged WebP SHA-256 is:
 
 ~~~text
-C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6
+release-assets.json -> spritesheetSha256
 ~~~
 
 Windows:
@@ -241,9 +241,20 @@ and verify `SHA256SUMS.txt` before installing:
 - `SHA256SUMS.txt`
 
 After extraction, run the package validator. The version-specific details are
-in the [v0.1.2 release notes](docs/releases/v0.1.2.md).
+in the [v0.1.3 candidate notes](docs/releases/v0.1.3.md).
+
+To check approved bytes as well as structure:
+
+~~~sh
+python scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json
+~~~
+
+The lock is an explicit approval record, not a digital signature.
 
 ## Contributions and issues
+
+Development requires the full repository and `pip install -r requirements-dev.txt`.
+Generated playback HTML is a maintainer tool; see the candidate release notes.
 
 Contributions to scripts, tests, and documentation are welcome. Before opening
 a pull request, run the test suite and package validator:

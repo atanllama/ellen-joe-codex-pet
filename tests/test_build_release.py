@@ -8,22 +8,29 @@ import time
 import zipfile
 from pathlib import Path
 
-from scripts.build_release import INCLUDED, build_release
+from scripts.build_release import release_inputs, build_release
+from test_pet_contract import write_package
+import json
+INCLUDED = release_inputs("v0.1.0")
 
 
-WEBP_BYTES = b"RIFF\x00\r\nWEBP\xff"
-TEXT_BYTES = b"first line\nsecond line\n"
-
-
-def fake_repo(root: Path, *, newline: bytes = b"\n", webp_bytes: bytes = b"webp") -> None:
+def fake_repo(root: Path, *, newline: bytes = b"\n") -> None:
     for relative in INCLUDED:
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(
-            webp_bytes
-            if path.suffix == ".webp"
-            else b"first line" + newline + b"second line" + newline
-        )
+        path.write_bytes(b"first line" + newline + b"second line" + newline)
+    pet_root=root/'pet'
+    import shutil
+    shutil.rmtree(pet_root/'ellen-joe-pixel')
+    pet=write_package(pet_root)
+    lock={'schemaVersion':1,'petId':'ellen-joe-pixel','spritesheetSha256':hashlib.sha256((pet/'spritesheet.webp').read_bytes()).hexdigest()}
+    (root/'release-assets.json').write_text(json.dumps(lock))
+    from PIL import Image
+    Image.new('RGBA',(2,2),(1,2,3,4)).save(root/'qa/contact-sheet-standard.png')
+    for relative in INCLUDED:
+        path=root/relative
+        if path.suffix not in {'.png','.webp'}:
+            path.write_bytes(path.read_bytes().replace(b"\r\n",b"\n").replace(b"\n",newline))
 
 
 def test_release_names_contents_and_checksums(tmp_path: Path) -> None:
@@ -105,8 +112,8 @@ def test_release_normalizes_text_line_endings_but_preserves_webp_bytes(tmp_path:
     crlf_repo = tmp_path / "crlf-repo"
     lf_repo.mkdir()
     crlf_repo.mkdir()
-    fake_repo(lf_repo, newline=b"\n", webp_bytes=WEBP_BYTES)
-    fake_repo(crlf_repo, newline=b"\r\n", webp_bytes=WEBP_BYTES)
+    fake_repo(lf_repo, newline=b"\n")
+    fake_repo(crlf_repo, newline=b"\r\n")
 
     lf_release = build_release(lf_repo, "v0.1.0", tmp_path / "lf-dist")
     crlf_release = build_release(crlf_repo, "v0.1.0", tmp_path / "crlf-dist")
@@ -119,20 +126,10 @@ def test_release_normalizes_text_line_endings_but_preserves_webp_bytes(tmp_path:
     ).digest()
 
     root_name = "ellen-joe-pixel-v0.1.0"
-    text_members = [relative for relative in INCLUDED if not relative.endswith(".webp")]
     for release in (lf_release, crlf_release):
         with zipfile.ZipFile(release[0]) as archive:
-            for relative in text_members:
-                assert archive.read(f"{root_name}/{relative}") == TEXT_BYTES
-            assert archive.read(f"{root_name}/pet/ellen-joe-pixel/spritesheet.webp") == WEBP_BYTES
+            for relative in INCLUDED:
+                assert archive.read(f"{root_name}/{relative}") == (lf_repo/relative).read_bytes()
         with tarfile.open(release[1], "r:gz") as archive:
-            for relative in text_members:
-                member = archive.extractfile(f"{root_name}/{relative}")
-                assert member is not None
-                assert member.read() == TEXT_BYTES
-            member = archive.extractfile(f"{root_name}/pet/ellen-joe-pixel/spritesheet.webp")
-            assert member is not None
-            assert member.read() == WEBP_BYTES
-
-    assert (lf_repo / "pet/ellen-joe-pixel/spritesheet.webp").read_bytes() == WEBP_BYTES
-    assert (crlf_repo / "pet/ellen-joe-pixel/spritesheet.webp").read_bytes() == WEBP_BYTES
+            for relative in INCLUDED:
+                assert archive.extractfile(f"{root_name}/{relative}").read() == (lf_repo/relative).read_bytes()

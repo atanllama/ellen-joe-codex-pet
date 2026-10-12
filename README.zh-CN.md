@@ -11,7 +11,7 @@ Ellen Joe Pixel 是一个面向 Codex 的全身 Ellen Joe 宠物包，包含 Cod
 精灵图、跨平台安装脚本和本地包校验器。本项目为非官方、非商业同人作品，
 与 HoYoverse、Cognosphere 或 OpenAI 没有隶属、赞助或认可关系。
 
-请先阅读 [v0.1.2 发布说明](docs/releases/v0.1.2.md)、[权利、许可证与来源](#权利许可证与来源)
+请先阅读 [v0.1.3 候选说明](docs/releases/v0.1.3.md)、[权利、许可证与来源](#权利许可证与来源)
 以及本页对应的 [English guide](README.md)。
 
 ## 包信息
@@ -42,7 +42,7 @@ POSIX 安装脚本会使用 Python 3 校验 manifest。仓库校验器还需要 
 运行校验器前请安装开发依赖：
 
 ~~~sh
-python -m pip install -r requirements-dev.txt
+python -m pip install -r requirements-validator.txt
 ~~~
 
 CI 会校验包契约和安装脚本行为，但不会自动操作 Codex 桌面应用界面；
@@ -114,12 +114,12 @@ sh ./scripts/install.sh --codex-home "$HOME/.codex-test" --force
 安装器会先暂存新包，再把旧的精确目标移动到
 CodexHome/pet-backups 下的唯一备份目录，最后安装暂存目标，并输出备份路径。
 备份目录位于 pets 发现目录之外，因此不会被 Codex 误识别为第二个宠物。
-卸载不会删除备份或其他相邻宠物。[v0.1.1](docs/releases/v0.1.1.md)
+卸载不会删除备份或其他相邻宠物。[v0.1.1](https://github.com/atanllama/ellen-joe-codex-pet/blob/main/docs/releases/v0.1.1.md)
 修复了强制重装导致重复条目的备份位置问题。
 
 ## 校验包
 
-在仓库根目录安装开发依赖后运行：
+在解压目录安装校验依赖后运行：
 
 ~~~sh
 python scripts/validate_pet.py pet/ellen-joe-pixel
@@ -134,7 +134,7 @@ python .\scripts\validate_pet.py .\pet\ellen-joe-pixel
 校验成功返回 0，包契约失败返回 1。当前 WebP 图集的 SHA-256 为：
 
 ~~~text
-C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6
+release-assets.json -> spritesheetSha256
 ~~~
 
 Windows：
@@ -232,9 +232,19 @@ rmdir "$codex_home/pets/.ellen-joe-pixel.install.lock"
 - SHA256SUMS.txt
 
 解压后请再次运行包校验器。版本细节见
-[v0.1.2 发布说明](docs/releases/v0.1.2.md)。
+[v0.1.3 候选说明](docs/releases/v0.1.3.md)。
+
+同时核对结构与批准字节：
+
+~~~sh
+python scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json
+~~~
+
+lock 是批准素材的一致性记录，不是数字签名。v0.1.3 跨平台 CI 与真实应用验收尚未运行；历史 CI 不代表候选版本通过。
 
 ## 贡献与问题反馈
+
+开发需要完整仓库，并安装 `pip install -r requirements-dev.txt`。播放 HTML 为维护者工具，参见候选说明。
 
 欢迎为脚本、测试和文档提交贡献。提交 PR 前请运行：
 
