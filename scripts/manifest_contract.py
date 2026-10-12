@@ -54,3 +54,23 @@ def parse_asset_lock(text: str) -> dict[str, object]:
     if not isinstance(digest, str) or re.fullmatch('[0-9a-f]{64}', digest) is None:
         raise ValueError('spritesheetSha256 must be lowercase SHA-256')
     return value
+
+def main() -> int:
+    import argparse
+    import sys
+    from pathlib import Path
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--manifest', type=Path, required=True)
+    parser.add_argument('--asset-lock', type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        parse_manifest(args.manifest.read_text(encoding='utf-8'))
+        lock = parse_asset_lock(args.asset_lock.read_text(encoding='utf-8'))
+    except (OSError, UnicodeError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    print(lock['spritesheetSha256'])
+    return 0
+
+if __name__ == '__main__':
+    raise SystemExit(main())

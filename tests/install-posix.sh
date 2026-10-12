@@ -7,6 +7,8 @@ fixture="$temp_root/repo"
 home="$temp_root/codex home"
 mkdir -p "$fixture/scripts" "$fixture/pet/ellen-joe-pixel"
 cp "$test_dir/../scripts/install.sh" "$test_dir/../scripts/uninstall.sh" "$fixture/scripts/"
+cp "$test_dir/../scripts/manifest_contract.py" "$fixture/scripts/"
+cp "$test_dir/../release-assets.json" "$fixture/"
 manifest="$fixture/pet/ellen-joe-pixel/pet.json"
 sheet="$fixture/pet/ellen-joe-pixel/spritesheet.webp"
 canonical_manifest='{"id":"ellen-joe-pixel","displayName":"Ellen Joe Pixel","description":"A sleepy full-body Ellen Joe fan-art Codex Pet.","spriteVersionNumber":2,"spritesheetPath":"spritesheet.webp"}'

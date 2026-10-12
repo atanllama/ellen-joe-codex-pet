@@ -1,3 +1,4 @@
+param([string]$ShellPath = (Get-Process -Id $PID).Path)
 $ErrorActionPreference = 'Stop'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("ellen-installer-test-" + [guid]::NewGuid())
 $priorCodexHome = [Environment]::GetEnvironmentVariable('CODEX_HOME', 'Process')
@@ -10,6 +11,8 @@ try {
     $fallbackHome = Join-Path $tempRoot 'fallback home'
     New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts'), (Join-Path $fixture 'pet\ellen-joe-pixel') -Force | Out-Null
     Copy-Item "$PSScriptRoot\..\scripts\install.ps1", "$PSScriptRoot\..\scripts\uninstall.ps1" -Destination (Join-Path $fixture 'scripts')
+    Copy-Item "$PSScriptRoot\..\scripts\manifest-contract.ps1", "$PSScriptRoot\..\scripts\manifest_contract.py" -Destination (Join-Path $fixture 'scripts')
+    Copy-Item "$PSScriptRoot\..\release-assets.json" -Destination $fixture
     $env:CODEX_HOME = $fallbackHome
     $manifestPath = Join-Path $fixture 'pet\ellen-joe-pixel\pet.json'
     $sheetPath = Join-Path $fixture 'pet\ellen-joe-pixel\spritesheet.webp'
@@ -20,8 +23,12 @@ try {
     function Invoke-Code([string]$Name, [string[]]$Arguments) {
         Push-Location $fixture
         try {
-            & pwsh -NoProfile -File (Join-Path $fixture "scripts\$Name") @Arguments *> $null
-            return $LASTEXITCODE
+            $savedPreference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            & $ShellPath -NoProfile -File (Join-Path $fixture "scripts\$Name") @Arguments *> $null
+            $code = $LASTEXITCODE
+            $ErrorActionPreference = $savedPreference
+            return $code
         } finally { Pop-Location }
     }
     function Assert-Code([int]$Expected, [string]$Name, [string[]]$Arguments) {

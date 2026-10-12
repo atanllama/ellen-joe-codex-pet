@@ -225,74 +225,7 @@ elif command -v python >/dev/null 2>&1 && python -c 'import sys; raise SystemExi
 else
     fail 3 'Invalid source: Python 3 is required to validate pet.json.'
 fi
-"$python_cmd" - "$source_dir/pet.json" <<'PY'
-import json
-import sys
-
-required = {"id", "spriteVersionNumber", "spritesheetPath"}
-
-
-def top_level_keys(source):
-    decoder = json.JSONDecoder()
-
-    def skip_whitespace(index):
-        while index < len(source) and source[index] in " \t\r\n":
-            index += 1
-        return index
-
-    index = skip_whitespace(0)
-    if index == len(source) or source[index] != "{":
-        raise ValueError("manifest must be an object")
-    index += 1
-    keys = []
-    while True:
-        index = skip_whitespace(index)
-        if index >= len(source):
-            raise ValueError("unterminated object")
-        if source[index] == "}":
-            return keys
-        key, index = decoder.raw_decode(source, index)
-        if not isinstance(key, str):
-            raise ValueError("object key is not a string")
-        keys.append(key)
-        index = skip_whitespace(index)
-        if index >= len(source) or source[index] != ":":
-            raise ValueError("missing object colon")
-        _, index = decoder.raw_decode(source, skip_whitespace(index + 1))
-        index = skip_whitespace(index)
-        if index < len(source) and source[index] == "}":
-            return keys
-        if index >= len(source) or source[index] != ",":
-            raise ValueError("missing object comma")
-        index += 1
-
-
-try:
-    with open(sys.argv[1], "r", encoding="utf-8", newline=None) as handle:
-        source = handle.read()
-    manifest = json.loads(source)
-    if type(manifest) is not dict:
-        raise ValueError("manifest must be an object")
-    keys = top_level_keys(source)
-    if any(keys.count(key) > 1 for key in required):
-        raise ValueError("duplicate required top-level key")
-    if manifest.get("id") != "ellen-joe-pixel":
-        raise ValueError("invalid id")
-    if manifest.get("displayName") != "Ellen Joe Pixel":
-        raise ValueError("invalid display name")
-    if not isinstance(manifest.get("description"), str) or not manifest["description"].strip():
-        raise ValueError("invalid description")
-    if type(manifest.get("spriteVersionNumber")) is not int or manifest["spriteVersionNumber"] != 2:
-        raise ValueError("invalid sprite version")
-    if manifest.get("spritesheetPath") != "spritesheet.webp":
-        raise ValueError("invalid spritesheet path")
-except (OSError, ValueError, json.JSONDecodeError, TypeError) as error:
-    print(f"Invalid source: manifest contract mismatch ({error}).", file=sys.stderr)
-    sys.exit(1)
-PY
-[ "$?" -eq 0 ] || fail 3 'Invalid source: manifest contract mismatch.'
-
-expected_spritesheet_sha256=C6F4ED31F670E00CDA1B596F35372B3B60BA5A6CB94DBD6E049B2E1950FC15E6
+expected_spritesheet_sha256=$("$python_cmd" "$script_dir/manifest_contract.py" --manifest "$source_dir/pet.json" --asset-lock "$script_dir/../release-assets.json") || fail 3 'Invalid source: manifest or asset lock mismatch.'
 if command -v sha256sum >/dev/null 2>&1; then
     actual_spritesheet_sha256=$(sha256sum "$source_dir/spritesheet.webp" | awk '{print $1}') || fail 3 'Invalid source: cannot hash spritesheet.webp.'
 elif command -v shasum >/dev/null 2>&1; then
@@ -300,7 +233,7 @@ elif command -v shasum >/dev/null 2>&1; then
 else
     fail 3 'Invalid source: sha256sum or shasum is required to verify spritesheet.webp.'
 fi
-[ "$(printf '%s' "$actual_spritesheet_sha256" | tr '[:lower:]' '[:upper:]')" = "$expected_spritesheet_sha256" ] || fail 3 'Invalid source: spritesheet.webp does not match the approved v2 atlas.'
+[ "$(printf '%s' "$actual_spritesheet_sha256" | tr '[:upper:]' '[:lower:]')" = "$expected_spritesheet_sha256" ] || fail 3 'Invalid source: spritesheet.webp does not match the approved v2 atlas.'
 
 codex_home=$(canonical_home "$codex_home") || exit $?
 pets_candidate="$codex_home/pets"
