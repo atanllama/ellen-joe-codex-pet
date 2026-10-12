@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONDONTWRITEBYTECODE: "1"
-      TMPDIR: ${{ runner.temp }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -29,6 +28,13 @@ jobs:
           cache-dependency-path: |
             requirements-dev.txt
             requirements-validator.txt
+      - name: Configure temporary directories
+        shell: python
+        run: |
+          import os
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
+              for name in ("TEMP", "TMP", "TMPDIR"):
+                  environment.write(f"{name}={os.environ['RUNNER_TEMP']}\n")
       - run: python -m pip install -r requirements-dev.txt
       - run: python -B scripts/validate_pet.py pet/ellen-joe-pixel --asset-lock release-assets.json
       - shell: sh

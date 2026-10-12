@@ -15,7 +15,16 @@ def test_reusable_check_matrix():
     assert 'python -B -m pytest' in commands # full suite includes independent archive tests
     assert '-ShellPath pwsh' in commands and '-ShellPath powershell.exe' in commands
     assert 'sh tests/install-posix.sh' in commands
-    assert job['env']['TEMP']=='${{ runner.temp }}' and job['env']['TMP']=='${{ runner.temp }}'
+    assert job['env']['PYTHONDONTWRITEBYTECODE']=='1'
+
+def test_runner_temp_is_configured_inside_steps_not_job_env():
+    for workflow,job_name in [('checks.yml','check'),('release.yml','release')]:
+        job=read(workflow)['jobs'][job_name]
+        assert not any('runner.' in str(value) for value in job.get('env',{}).values())
+        setup=next(step for step in job['steps'] if step.get('name')=='Configure temporary directories')
+        assert setup['shell']=='python'
+        assert 'RUNNER_TEMP' in setup['run'] and 'GITHUB_ENV' in setup['run']
+        assert all(f'"{key}"' in setup['run'] for key in ['TEMP','TMP','TMPDIR'])
 
 def test_release_requires_same_commit_checks():
     w=read('release.yml');assert w['jobs']['checks']['uses']=='./.github/workflows/checks.yml'

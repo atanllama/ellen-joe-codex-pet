@@ -11,9 +11,6 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     env:
-      TEMP: ${{ runner.temp }}
-      TMP: ${{ runner.temp }}
-      TMPDIR: ${{ runner.temp }}
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v7
@@ -27,6 +24,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Configure temporary directories
+        shell: python
+        run: |
+          import os
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as environment:
+              for name in ("TEMP", "TMP", "TMPDIR"):
+                  environment.write(f"{name}={os.environ['RUNNER_TEMP']}\n")
       - run: python -m pip install -r requirements-dev.txt
       - run: python -B -m pytest -q -p no:cacheprovider
       - run: node --test tests/playback.test.mjs
