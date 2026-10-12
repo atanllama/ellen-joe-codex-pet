@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 try:
-    from .manifest_contract import parse_manifest
+    from .manifest_contract import parse_manifest, parse_asset_lock
 except ImportError:
-    from manifest_contract import parse_manifest
+    from manifest_contract import parse_manifest, parse_asset_lock
 from pathlib import Path
 
 from PIL import Image
@@ -25,7 +25,7 @@ def _cell_alpha_bbox(
     ).getbbox()
 
 
-def validate_package(pet_dir: Path) -> list[str]:
+def validate_package(pet_dir: Path, *, asset_lock: Path | None = None) -> list[str]:
     errors: list[str] = []
     manifest_path = pet_dir / "pet.json"
     if not manifest_path.is_file():
@@ -39,6 +39,14 @@ def validate_package(pet_dir: Path) -> list[str]:
     if not sheet_path.is_file():
         errors.append("missing spritesheet.webp")
         return errors
+    if asset_lock is not None:
+        try:
+            import hashlib
+            lock = parse_asset_lock(asset_lock.read_text(encoding="utf-8"))
+            if hashlib.sha256(sheet_path.read_bytes()).hexdigest() != lock['spritesheetSha256']:
+                errors.append("spritesheet hash mismatch")
+        except (OSError, UnicodeError, ValueError) as exc:
+            errors.append(f"invalid asset lock: {exc}")
     try:
         with Image.open(sheet_path) as loaded:
             if loaded.format != "WEBP":

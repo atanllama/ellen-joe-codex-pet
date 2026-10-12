@@ -40,3 +40,17 @@ def parse_manifest(text: str) -> dict[str, object]:
     if not isinstance(value.get('description'), str) or not value['description'].strip():
         raise ValueError('description must be a non-empty string')
     return value
+
+def parse_asset_lock(text: str) -> dict[str, object]:
+    import re
+    value = parse_object(text)
+    if set(value) != {'schemaVersion', 'petId', 'spritesheetSha256'}:
+        raise ValueError('invalid asset lock fields')
+    if type(value['schemaVersion']) is not int or value['schemaVersion'] != 1:
+        raise ValueError('schemaVersion must be integer 1')
+    if value['petId'] != EXPECTED_ID:
+        raise ValueError('asset lock petId mismatch')
+    digest = value['spritesheetSha256']
+    if not isinstance(digest, str) or re.fullmatch('[0-9a-f]{64}', digest) is None:
+        raise ValueError('spritesheetSha256 must be lowercase SHA-256')
+    return value

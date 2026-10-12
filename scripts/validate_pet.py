@@ -9,7 +9,9 @@ from pet_contract import validate_package
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("pet_dir", type=Path)
-    errors = validate_package(parser.parse_args().pet_dir.resolve())
+    parser.add_argument("--asset-lock", type=Path)
+    args = parser.parse_args()
+    errors = validate_package(args.pet_dir.resolve(), asset_lock=args.asset_lock)
     if errors:
         for error in errors:
             print(f"ERROR: {error}")
