@@ -52,4 +52,3 @@ def test_invalid_source_preserves_existing_archives(tmp_path):
     (repo/'pet/ellen-joe-pixel/pet.json').write_text('{}')
     with pytest.raises(ValueError):build_release(repo,'v0.1.3',out)
     assert all(p.read_bytes()==b'prior' for p in out.iterdir())
-

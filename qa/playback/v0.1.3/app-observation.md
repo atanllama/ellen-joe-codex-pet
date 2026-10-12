@@ -1,6 +1,6 @@
 # Application observation — 2026-10-12
 
-APP: **NOT_RUN**. Native desktop control is unavailable in this text session. Browser tools control web pages only. No real install or replacement was requested after candidate preparation; no installation was performed.
+APP: **NOT_RUN**. Follow-up native-tool discovery succeeded, superseding the earlier blanket statement that desktop control was unavailable. The Codex package was listed as ChatGPT with no targetable window, and the Computer Use guidance prohibits automating the ChatGPT desktop UI. Separately, the first browser capture stopped Computer Use for this turn because it could not reliably identify the browser URL. See [local follow-up](local-acceptance-followup.md). No real installation or replacement was performed.
 
 - Store package: 26.1007.2314.0; internal app version: 26.1007.21434.
 - Current discovery root: `F:/Codex/home/pets`.

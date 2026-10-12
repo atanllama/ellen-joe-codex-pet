@@ -4,6 +4,11 @@ import json
 
 EXPECTED_ID = 'ellen-joe-pixel'
 EXPECTED_DISPLAY_NAME = 'Ellen Joe Pixel'
+# Fixed description whitespace contract; mirrored by EllenJsonScanner.IsBlank.
+# Unicode White_Space plus U+001C..U+001F (the original Python behavior).
+DESCRIPTION_WHITESPACE = ('\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u0020'
+                          '\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005'
+                          '\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000')
 
 class _Pairs(list):
     pass
@@ -37,7 +42,7 @@ def parse_manifest(text: str) -> dict[str, object]:
                           'spriteVersionNumber': 2, 'spritesheetPath': 'spritesheet.webp'}.items():
         if type(value.get(key)) is not type(expected) or value[key] != expected:
             raise ValueError(f'{key} must be {expected!r}')
-    if not isinstance(value.get('description'), str) or not value['description'].strip():
+    if not isinstance(value.get('description'), str) or not value['description'].strip(DESCRIPTION_WHITESPACE):
         raise ValueError('description must be a non-empty string')
     return value
 

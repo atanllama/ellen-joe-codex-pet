@@ -7,6 +7,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 public sealed class EllenJsonScanner {
+    // Fixed description whitespace contract; mirrored by DESCRIPTION_WHITESPACE.
+    // Unicode White_Space plus U+001C..U+001F (the original Python behavior).
+    public static bool IsBlank(string value) {
+        const string whitespace = "\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u0020\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000";
+        if(value == null) return true;
+        foreach(char c in value) if(whitespace.IndexOf(c) < 0) return false;
+        return true;
+    }
     readonly string text; int pos; int depth;
     EllenJsonScanner(string value) { text = value.TrimStart('\uFEFF'); }
     void White() { while(pos < text.Length && " \t\r\n".IndexOf(text[pos]) >= 0) pos++; }
@@ -74,7 +82,7 @@ function Read-ApprovedPetHash([string]$ManifestPath, [string]$AssetLockPath) {
         if (-not $manifest.ContainsKey($pair[0]) -or -not [StringComparer]::Ordinal.Equals([EllenJsonScanner]::DecodeString($manifest[$pair[0]]), $pair[1])) { throw ('Invalid manifest ' + $pair[0]) }
     }
     if (-not $manifest.ContainsKey('spriteVersionNumber') -or $manifest['spriteVersionNumber'] -cne '2') { throw 'spriteVersionNumber must be integer 2' }
-    if (-not $manifest.ContainsKey('description') -or [string]::IsNullOrWhiteSpace([EllenJsonScanner]::DecodeString($manifest['description']))) { throw 'Invalid description' }
+    if (-not $manifest.ContainsKey('description') -or [EllenJsonScanner]::IsBlank([EllenJsonScanner]::DecodeString($manifest['description']))) { throw 'Invalid description' }
     $lock = [EllenJsonScanner]::Parse([IO.File]::ReadAllText($AssetLockPath, $encoding))
     if ($lock.Count -ne 3 -or -not $lock.ContainsKey('schemaVersion') -or -not $lock.ContainsKey('petId') -or -not $lock.ContainsKey('spritesheetSha256')) { throw 'Invalid asset lock fields' }
     if ($lock['schemaVersion'] -cne '1' -or [EllenJsonScanner]::DecodeString($lock['petId']) -cne 'ellen-joe-pixel') { throw 'Invalid asset lock identity/version' }

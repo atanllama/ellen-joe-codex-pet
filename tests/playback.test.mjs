@@ -78,3 +78,25 @@ test('returned idle honors repeat and hold while preserving its displayed identi
  s=cmd(s,'play');assert.equal(currentFrame(s).row,0);assert.equal(currentFrame(s).col,4);
  s=cmd(s,'replay');assert.equal(currentFrame(s).row,3);assert.equal(currentFrame(s).col,0);
 });
+
+// Cycle totals independently transcribed from runtime-evidence.md (normal motion).
+const sourceCycles=[['idle',0,6600,6],['movingRight',1,1060,8],['movingLeft',2,1060,8],
+ ['waving',3,700,4],['jumping',4,840,5],['failed',5,1220,8],
+ ['waiting',6,1010,6],['running',7,820,6],['review',8,1030,6]];
+for(const [action,row,cycle,frames] of sourceCycles){
+ test(`local acceptance: ${action} boundaries, speeds and visibility`,()=>{
+  for(const speed of [.5,1,2]){
+   const start=mode=>cmd(createPlayback(runtime,action,mode),'speed',{value:speed});
+   let s=tick(start('once'),(cycle-1)/speed);
+   assert.equal(currentFrame(s).row,row);assert.equal(s.frameIndex,frames-1);assert.equal(s.playing,true);
+   s=tick(s,1/speed);assert.equal(s.playing,false);assert.equal(s.frameIndex,frames-1);
+   s=tick(start('loop'),3*cycle/speed);assert.equal(s.playing,true);assert.equal(s.frameIndex,0);assert.equal(currentFrame(s).row,row);
+   s=tick(start('codex'),3*cycle/speed);assert.equal(s.playing,true);assert.equal(currentFrame(s).row,0);assert.equal(s.frameIndex,0);
+   assert.equal(s.phase,action==='idle'?'action':'idle');
+   s=tick(start('codex'),40/speed);s=cmd(s,'visibility',{hidden:true});s=tick(s,60000);
+   assert.equal(s.elapsedMs,40);assert.equal(s.playing,false);
+   s=cmd(s,'visibility',{hidden:false});assert.equal(s.playing,true);assert.equal(s.elapsedMs,40);
+   s=cmd(s,'pause');s=tick(s,60000);assert.equal(s.elapsedMs,40);
+  }
+ });
+}

@@ -74,4 +74,3 @@ def test_bad_lock_preserves_target(shell,bad,force,tmp_path):
         assert (target/'pet.json').read_bytes()==b'old manifest'
         assert (target/'spritesheet.webp').read_bytes()==b'old sheet'
     else: assert not home.exists()
-

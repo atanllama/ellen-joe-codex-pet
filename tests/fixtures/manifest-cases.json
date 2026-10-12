@@ -143,5 +143,40 @@
     "name": "missing-spritesheetPath",
     "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"A sleepy full-body Ellen Joe fan-art Codex Pet.\", \"spriteVersionNumber\": 2}",
     "valid": false
+  },
+  {
+    "name": "description-separator-1c",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u001c\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "description-separator-1d",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u001d\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "description-separator-1e",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u001e\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "description-separator-1f",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u001f\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "description-unicode-whitespace",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u0085\\u00a0\\u1680\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": false
+  },
+  {
+    "name": "description-surrounded-content",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u001c Ellen \\u3000\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": true
+  },
+  {
+    "name": "description-zero-width-nonwhitespace",
+    "text": "{\"id\": \"ellen-joe-pixel\", \"displayName\": \"Ellen Joe Pixel\", \"description\": \"\\u200b\", \"spriteVersionNumber\": 2, \"spritesheetPath\": \"spritesheet.webp\"}",
+    "valid": true
   }
 ]
