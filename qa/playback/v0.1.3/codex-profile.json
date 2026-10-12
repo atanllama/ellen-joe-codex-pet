@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "kind": "codex",
+  "appVersion": "26.1007.21434 (Store 26.1007.2314.0)",
+  "capturedAt": "2026-10-12",
+  "evidence": [
+    {
+      "id": "E1",
+      "level": "STATIC_VERIFIED",
+      "source": "runtime-evidence.md: E1 / app-initial-b8e1c8014bb4.js elo, BQ, clo",
+      "fingerprint": "799331dde54905c4df5e360f23a9621141759e2c0acb230aeab909f9904b646f"
+    }
+  ],
+  "actions": {
+    "idle": {
+      "frames": [
+        {
+          "row": 0,
+          "col": 0,
+          "durationMs": 1680
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "durationMs": 660
+        },
+        {
+          "row": 0,
+          "col": 2,
+          "durationMs": 660
+        },
+        {
+          "row": 0,
+          "col": 3,
+          "durationMs": 840
+        },
+        {
+          "row": 0,
+          "col": 4,
+          "durationMs": 840
+        },
+        {
+          "row": 0,
+          "col": 5,
+          "durationMs": 1920
+        }
+      ],
+      "repeatCount": 1,
+      "after": "loop",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "movingRight": {
+      "frames": [
+        {
+          "row": 1,
+          "col": 0,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 5,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 6,
+          "durationMs": 120
+        },
+        {
+          "row": 1,
+          "col": 7,
+          "durationMs": 220
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "movingLeft": {
+      "frames": [
+        {
+          "row": 2,
+          "col": 0,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 5,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 6,
+          "durationMs": 120
+        },
+        {
+          "row": 2,
+          "col": 7,
+          "durationMs": 220
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "waving": {
+      "frames": [
+        {
+          "row": 3,
+          "col": 0,
+          "durationMs": 140
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "durationMs": 140
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "durationMs": 140
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "durationMs": 280
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "jumping": {
+      "frames": [
+        {
+          "row": 4,
+          "col": 0,
+          "durationMs": 140
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "durationMs": 140
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "durationMs": 140
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "durationMs": 140
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "durationMs": 280
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "failed": {
+      "frames": [
+        {
+          "row": 5,
+          "col": 0,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 6,
+          "durationMs": 140
+        },
+        {
+          "row": 5,
+          "col": 7,
+          "durationMs": 240
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "waiting": {
+      "frames": [
+        {
+          "row": 6,
+          "col": 0,
+          "durationMs": 150
+        },
+        {
+          "row": 6,
+          "col": 1,
+          "durationMs": 150
+        },
+        {
+          "row": 6,
+          "col": 2,
+          "durationMs": 150
+        },
+        {
+          "row": 6,
+          "col": 3,
+          "durationMs": 150
+        },
+        {
+          "row": 6,
+          "col": 4,
+          "durationMs": 150
+        },
+        {
+          "row": 6,
+          "col": 5,
+          "durationMs": 260
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "running": {
+      "frames": [
+        {
+          "row": 7,
+          "col": 0,
+          "durationMs": 120
+        },
+        {
+          "row": 7,
+          "col": 1,
+          "durationMs": 120
+        },
+        {
+          "row": 7,
+          "col": 2,
+          "durationMs": 120
+        },
+        {
+          "row": 7,
+          "col": 3,
+          "durationMs": 120
+        },
+        {
+          "row": 7,
+          "col": 4,
+          "durationMs": 120
+        },
+        {
+          "row": 7,
+          "col": 5,
+          "durationMs": 220
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    },
+    "review": {
+      "frames": [
+        {
+          "row": 8,
+          "col": 0,
+          "durationMs": 150
+        },
+        {
+          "row": 8,
+          "col": 1,
+          "durationMs": 150
+        },
+        {
+          "row": 8,
+          "col": 2,
+          "durationMs": 150
+        },
+        {
+          "row": 8,
+          "col": 3,
+          "durationMs": 150
+        },
+        {
+          "row": 8,
+          "col": 4,
+          "durationMs": 150
+        },
+        {
+          "row": 8,
+          "col": 5,
+          "durationMs": 280
+        }
+      ],
+      "repeatCount": 3,
+      "after": "idle",
+      "evidenceIds": [
+        "E1"
+      ]
+    }
+  },
+  "events": {
+    "priority": null,
+    "transitions": null,
+    "lookTrigger": null
+  },
+  "scope": "Normal motion; renderer loop=false; event scheduling unverified."
+}

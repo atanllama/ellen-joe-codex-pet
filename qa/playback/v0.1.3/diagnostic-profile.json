@@ -1,0 +1,566 @@
+{
+  "schemaVersion": 1,
+  "kind": "diagnostic",
+  "appVersion": null,
+  "capturedAt": "2026-10-12",
+  "evidence": [],
+  "actions": {
+    "idle": {
+      "frames": [
+        {
+          "row": 0,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 0,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 0,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 0,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 0,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 0,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "movingRight": {
+      "frames": [
+        {
+          "row": 1,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 5,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 6,
+          "durationMs": 160
+        },
+        {
+          "row": 1,
+          "col": 7,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "movingLeft": {
+      "frames": [
+        {
+          "row": 2,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 5,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 6,
+          "durationMs": 160
+        },
+        {
+          "row": 2,
+          "col": 7,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "waving": {
+      "frames": [
+        {
+          "row": 3,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 3,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 3,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 3,
+          "col": 3,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "jumping": {
+      "frames": [
+        {
+          "row": 4,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 4,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 4,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 4,
+          "col": 4,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "failed": {
+      "frames": [
+        {
+          "row": 5,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 6,
+          "durationMs": 160
+        },
+        {
+          "row": 5,
+          "col": 7,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "waiting": {
+      "frames": [
+        {
+          "row": 6,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 6,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 6,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 6,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 6,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 6,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "running": {
+      "frames": [
+        {
+          "row": 7,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 7,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 7,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 7,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 7,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 7,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "review": {
+      "frames": [
+        {
+          "row": 8,
+          "col": 0,
+          "durationMs": 160
+        },
+        {
+          "row": 8,
+          "col": 1,
+          "durationMs": 160
+        },
+        {
+          "row": 8,
+          "col": 2,
+          "durationMs": 160
+        },
+        {
+          "row": 8,
+          "col": 3,
+          "durationMs": 160
+        },
+        {
+          "row": 8,
+          "col": 4,
+          "durationMs": 160
+        },
+        {
+          "row": 8,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "neutral": {
+      "frames": [
+        {
+          "row": 0,
+          "col": 6,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-000.0": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 0,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-022.5": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 1,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-045.0": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 2,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-067.5": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 3,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-090.0": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 4,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-112.5": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-135.0": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 6,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-157.5": {
+      "frames": [
+        {
+          "row": 9,
+          "col": 7,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-180.0": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 0,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-202.5": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 1,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-225.0": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 2,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-247.5": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 3,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-270.0": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 4,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-292.5": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 5,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-315.0": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 6,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    },
+    "look-337.5": {
+      "frames": [
+        {
+          "row": 10,
+          "col": 7,
+          "durationMs": 160
+        }
+      ],
+      "repeatCount": 1,
+      "after": "hold",
+      "evidenceIds": []
+    }
+  },
+  "events": {
+    "priority": null,
+    "transitions": null,
+    "lookTrigger": null
+  }
+}
