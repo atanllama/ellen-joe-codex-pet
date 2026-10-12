@@ -1,5 +1,5 @@
 [English](README.md) | [简体中文](README.zh-CN.md)
-
+Entirely produced by Codex; 完全交由 Codex 制作
 # Ellen Joe Pixel — Codex Pet
 
 > **Project status:** public, unofficial fan work. Latest release:
