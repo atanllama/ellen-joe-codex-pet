@@ -68,4 +68,4 @@ See [runtime evidence](runtime-evidence.md), [browser checklist](preview-checkli
 
 To close acceptance: run the actual three-OS matrix on this final commit, open the generated HTML directly and check physical tab hide/restore, sign off all nine native-size motion rows, then observe the existing identical pet in Codex. Any newly confirmed art issue returns to ADJUST and candidate validation. No old waiver is reused.
 
-No push, merge, tag, release, application upgrade or real pet replacement was performed. Keep this branch/worktree for review; publication is a separate decision after these concrete gaps are considered.
+The user subsequently authorized real pet installation and a local main merge. Both succeeded; see [installation and merge receipt](installation-and-merge.md). Installed files and backup hashes were verified. No push, tag, release or application upgrade was performed; publication and remaining visual/app acceptance are still separate.
